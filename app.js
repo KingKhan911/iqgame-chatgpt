@@ -84,9 +84,8 @@ function makeRotation(rand){
 function makeEquation(rand){
   const diamond=3+Math.floor(rand()*5);
   let circle=1+Math.floor(rand()*6); if(circle===diamond) circle=(circle%6)+1;
-  const ds=new Set([circle]);
-  while(ds.size<4){const n=Math.max(1,Math.min(9,circle-2+Math.floor(rand()*5)));ds.add(n)}
-  const choices=shuffleCopy([...ds],rand);
+  const alternatives=shuffleCopy([1,2,3,4,5,6,7,8,9].filter(n=>n!==circle),rand).slice(0,3);
+  const choices=shuffleCopy([circle,...alternatives],rand);
   return {type:"equations",category:"LOGIC",prompt:"Decode the values",title:"What is the circle worth?",
     hint:"Use the first two clues.",
     board:[
