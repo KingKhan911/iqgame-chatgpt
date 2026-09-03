@@ -472,9 +472,9 @@ function finishRun(){
   clearInterval(state.timer);clearTimeout(state.memoryTimeout);
   const accuracy=state.correct/state.run.length,avgTime=state.responseTimes.length?state.responseTimes.reduce((a,b)=>a+b,0)/state.responseTimes.length:20;
   const speedBonus=Math.max(0,Math.round((20-avgTime)*4)),score=Math.min(999,Math.round(500+accuracy*350+speedBonus));
-  const percentile=Math.max(2,Math.min(70,Math.round(61-accuracy*52-speedBonus/15)));
+  const rank=score>=900?"Mastermind":score>=825?"Brilliant":score>=750?"Sharp":score>=675?"Focused":"Warming Up";
   $("#finalScore").textContent=score;$("#scoreDelta").textContent=score>=820?"↑ strong run today":score>=700?"solid work today":"room to grow";
-  $("#rankText").textContent=`Top ${percentile}%`;$("#correctText").textContent=`${state.correct} / ${state.run.length} correct`;
+  $("#rankText").textContent=rank;$("#correctText").textContent=`${state.correct} / ${state.run.length} correct`;
   $("#resultEyebrow").innerHTML=state.mode==="daily"?'<span></span> Daily run complete':'<span></span> Practice complete';
   $("#resultTitle").textContent=state.mode==="daily"?"Beautiful thinking.":"Nice training.";
   $("#resultSubtitle").textContent=state.mode==="daily"?"Here’s how your mind performed today.":`${state.skill||"Mixed"} practice is complete.`;
@@ -486,7 +486,7 @@ function finishRun(){
   [["pattern",pattern],["logic",logic],["focus",focus],["speed",speed]].forEach(([name,value])=>$("#"+name+"Score").textContent=value);
   if(state.mode==="daily"){
     const previousBest=Number(localStorage.getItem("iqgames-best")||0),newBest=Math.max(score,previousBest);
-    localStorage.setItem("iqgames-best",String(newBest));$("#homeBestScore").textContent=newBest||842;
+    localStorage.setItem("iqgames-best",String(newBest));$("#homeBestScore").textContent=newBest||"—";
   }
   saveRunProgress(score,accuracy);
   showScreen("result");requestAnimationFrame(()=>setTimeout(()=>{$("#patternBar").style.width=pattern+"%";$("#logicBar").style.width=logic+"%";$("#focusBar").style.width=focus+"%";$("#speedBar").style.width=speed+"%"},250));
@@ -494,7 +494,7 @@ function finishRun(){
 
 function loadProgress(){
   return {
-    best:Number(localStorage.getItem("iqgames-best")||842),
+    best:Number(localStorage.getItem("iqgames-best")||0),
     xp:Number(localStorage.getItem("iqgames-xp")||0),
     runs:Number(localStorage.getItem("iqgames-runs")||0),
     correct:Number(localStorage.getItem("iqgames-correct")||0),
@@ -533,8 +533,12 @@ function saveRunProgress(score,accuracy){
 }
 function refreshProgressUI(){
   const p=loadProgress(),level=Math.floor(p.xp/500)+1,within=p.xp%500;
+  if(p.lastDay && p.streak===0){p.streak=1;localStorage.setItem("iqgames-streak","1")}
   $("#headerStreak").textContent=p.streak;
-  $("#profileBest").textContent=p.best;
+  $("#homeStreak").textContent=p.streak+(p.streak===1?" day":" days");
+  $("#streakGoal").textContent=Math.min(p.streak,7)+"/7";
+  $("#streakRing").style.background=`conic-gradient(var(--violet) ${Math.min(100,(p.streak/7)*100)}%, #eceaf4 0)`;
+  $("#profileBest").textContent=p.best||"—";
   $("#profileStreak").textContent=p.streak;
   $("#profileRuns").textContent=p.runs;
   $("#profileAccuracy").textContent=p.questions?Math.round((p.correct/p.questions)*100)+"%":"—";
@@ -545,7 +549,9 @@ function refreshProgressUI(){
   $("#badgeFirst").classList.toggle("unlocked",p.runs>=1);
   $("#badgeSharp").classList.toggle("unlocked",p.sharp);
   $("#badgeStreak").classList.toggle("unlocked",p.streak>=3);
-  $("#dailyStatusText").textContent=p.lastDay===localDateKey()?"Today’s run complete ✓":"Fresh challenge every day";
+  const completed=p.lastDay===localDateKey();
+  $("#dailyStatusText").textContent=completed?"Today’s run complete ✓":"Fresh challenge every day";
+  $("#startRunButton").classList.toggle("completed",completed);
 }
 
 function goHome(){clearInterval(state.timer);clearTimeout(state.memoryTimeout);showScreen("home");$("#feedbackCard").classList.remove("show")}
