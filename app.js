@@ -111,7 +111,7 @@ function makeOneMove(rand){
   ];
   const pack=answerPack(T(correct,"MOVE ONE GEM"),distractors.map(x=>T(x,"MOVE ONE GEM")),rand);
   return {type:"onemove",category:"STRATEGY",prompt:"One move only",title:"Make the towers equal",
-    hint:"Move exactly one gem from one tower to another.",towers,...pack,
+    hint:"Tap the tower to take from, then tap where the gem should go.",towers,source:high,destination:low,...pack,
     explanation:`Move one gem from ${high} to ${low}. All three towers then have 3 gems.`};
 }
 function makeBalance(rand){
@@ -200,20 +200,25 @@ function pathSvg(winner){
     [[40,150],[100,150],[100,132],[182,132],[182,166],[230,166]]
   ];
   const starX=278,starY=starts[winner];
-  const lines=routes.map((pts,i)=>{
+  const routeGroups=routes.map((pts,i)=>{
     const end=i===winner?[starX-16,starY]:endings[(i+1)%4];
     const all=[...pts,end];
     const points=all.map(p=>p.join(",")).join(" ");
-    return `<polyline points="${points}" fill="none" stroke="${colors[i]}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`;
+    return `<g class="path-route" data-route="${i}" tabindex="0" role="button" aria-label="Choose path ${["A","B","C","D"][i]}">
+      <polyline class="path-hit" points="${points}" fill="none" stroke="transparent" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline class="path-visible" points="${points}" fill="none" stroke="${colors[i]}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="24" cy="${starts[i]}" r="14" fill="${colors[i]}"/>
+      <text x="24" y="${starts[i]+4}" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">${["A","B","C","D"][i]}</text>
+    </g>`;
   }).join("");
-  const labels=starts.map((y,i)=>`<g><circle cx="24" cy="${y}" r="13" fill="${colors[i]}"/><text x="24" y="${y+4}" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">${["A","B","C","D"][i]}</text></g>`).join("");
-  return `<svg class="path-map" viewBox="0 0 320 205" aria-hidden="true">
+  return `<svg class="path-map" viewBox="0 0 320 205" aria-label="Choose the route that reaches the star">
     <rect x="4" y="5" width="312" height="195" rx="28" fill="#fbfaf7"/>
-    ${lines}${labels}
-    <g transform="translate(${starX},${starY})"><path d="M0-14 4-4 15-4 6 3 10 14 0 8-10 14-6 3-15-4-4-4Z" fill="#ffd365"/></g>
+    ${routeGroups}
+    <g class="path-star" transform="translate(${starX},${starY})"><path d="M0-14 4-4 15-4 6 3 10 14 0 8-10 14-6 3-15-4-4-4Z" fill="#ffd365"/></g>
     <circle cx="${starX}" cy="${starY}" r="23" fill="none" stroke="#f1d583" stroke-width="2" stroke-dasharray="3 5"/>
   </svg>`;
 }
+
 function renderBoard(p){
   const board=$("#puzzleBoard");board.className=`puzzle-board ${p.type}`;
   if(p.type==="equations"){
@@ -223,7 +228,7 @@ function renderBoard(p){
     board.innerHTML=p.board.map((item,i)=>`<div class="odd-card"><b>${i+1}</b>${shapeMarkup(item)}</div>`).join("");return;
   }
   if(p.type==="onemove"){
-    board.innerHTML=`<div class="move-board">${p.towers.map(t=>`<div class="gem-tower"><span class="tower-label">${t.label}</span><div class="gem-stack">${Array.from({length:t.height},()=>`<i class="gem tone-${t.tone}"></i>`).join("")}</div><span class="tower-count">${t.height}</span></div>`).join("")}<div class="move-goal">ONE MOVE <span>→</span> 3 · 3 · 3</div></div>`;return;
+    board.innerHTML=`<div class="move-board">${p.towers.map(t=>`<button class="gem-tower" data-tower="${t.label}" aria-label="Tower ${t.label}, ${t.height} gems"><span class="tower-label">${t.label}</span><div class="gem-stack">${Array.from({length:t.height},()=>`<i class="gem tone-${t.tone}"></i>`).join("")}</div><span class="tower-count">${t.height}</span><span class="tower-action">tap</span></button>`).join("")}<div class="move-goal">ONE MOVE <span>→</span> 3 · 3 · 3</div></div>`;return;
   }
   if(p.type==="balance"){
     board.innerHTML=`<div class="balance-board">
@@ -248,6 +253,84 @@ function renderBoard(p){
   }
   board.innerHTML=p.board.map((item,i)=>tileMarkup(item,i,p.type==="memory")).join("");
 }
+function setInteractiveMode(active,label=""){
+  $("#answersGrid").classList.toggle("interaction-hidden",active);
+  $("#answerLabel").classList.toggle("interaction-label",active);
+  if(active && label) $("#answerLabel").textContent=label;
+}
+
+function setupOneMove(p){
+  setInteractiveMode(true,"TAP A SOURCE, THEN A DESTINATION");
+  let source=null;
+  const towers=$(".gem-tower");
+  towers.forEach(tower=>{
+    tower.addEventListener("click",()=>{
+      if(state.answered)return;
+      const label=tower.dataset.tower;
+      if(!source){
+        source=label;
+        towers.forEach(x=>x.classList.toggle("selected-source",x.dataset.tower===label));
+        $("#answerLabel").textContent=`MOVE FROM ${label} → CHOOSE DESTINATION`;
+        return;
+      }
+      if(label===source){
+        source=null;
+        towers.forEach(x=>x.classList.remove("selected-source"));
+        $("#answerLabel").textContent="TAP A SOURCE, THEN A DESTINATION";
+        return;
+      }
+      const sourceTower=p.towers.find(t=>t.label===source);
+      const destinationTower=p.towers.find(t=>t.label===label);
+      if(!sourceTower || !destinationTower || sourceTower.height<1)return;
+
+      sourceTower.height-=1;destinationTower.height+=1;
+      const sourceEl=$(`.gem-tower[data-tower="${source}"]`);
+      const destinationEl=$(`.gem-tower[data-tower="${label}"]`);
+      const movingGem=sourceEl.querySelector(".gem-stack .gem:last-child");
+      if(movingGem){
+        movingGem.classList.add("gem-lift");
+        setTimeout(()=>{
+          movingGem.remove();
+          const newGem=document.createElement("i");
+          newGem.className=`gem tone-${sourceTower.tone} gem-drop`;
+          destinationEl.querySelector(".gem-stack").appendChild(newGem);
+        },180);
+      }
+      sourceEl.querySelector(".tower-count").textContent=sourceTower.height;
+      destinationEl.querySelector(".tower-count").textContent=destinationTower.height;
+      towers.forEach(x=>x.classList.remove("selected-source"));
+
+      const moveText=`${source} → ${label}`;
+      const answerIndex=p.answers.findIndex(a=>a.text===moveText);
+      setTimeout(()=>chooseAnswer(answerIndex),320);
+    });
+  });
+}
+
+function setupPath(p){
+  setInteractiveMode(true,"TAP THE PATH THAT REACHES THE STAR");
+  $(".path-route").forEach(route=>{
+    const activate=()=>{
+      if(state.answered)return;
+      const index=Number(route.dataset.route);
+      route.classList.add("route-chosen");
+      chooseAnswer(index);
+      $(".path-route").forEach((r,i)=>{
+        if(i===p.correct)r.classList.add("route-correct");
+        else if(i===index && i!==p.correct)r.classList.add("route-wrong");
+      });
+    };
+    route.addEventListener("click",activate);
+    route.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();activate()}});
+  });
+}
+
+function setupPuzzleInteraction(p){
+  setInteractiveMode(false);
+  if(p.type==="onemove")setupOneMove(p);
+  if(p.type==="path")setupPath(p);
+}
+
 function renderAnswers(p){
   const answers=$("#answersGrid");answers.className="answers-grid";
   answers.innerHTML=p.answers.map((answer,i)=>`<button class="answer-button ${answer.kind==="dotpattern"?"pattern-answer":answer.kind==="shadow"?"shadow-answer":""}" data-answer="${i}" aria-label="Answer ${i+1}">${shapeMarkup(answer)}</button>`).join("");
@@ -269,8 +352,8 @@ function renderPuzzle(){
   $("#modePrompt").innerHTML=`<span></span> ${p.prompt}`;$("#questionTitle").textContent=p.title;$("#questionHint").textContent=p.hint;
   $("#progressBar").style.width=`${((state.index+1)/state.run.length)*100}%`;$("#feedbackCard").classList.remove("show","bad");$("#memoryCurtain").classList.remove("show");
   $("#puzzleStage").dataset.type=p.type;$("#puzzleStage").classList.remove("stage-correct","stage-wrong");
-  $("#answerLabel").textContent=p.type==="memory"?"MEMORIZE FIRST":p.type==="onemove"?"CHOOSE THE MOVE":"CHOOSE YOUR ANSWER";
-  renderBoard(p);renderAnswers(p);
+  $("#answerLabel").textContent=p.type==="memory"?"MEMORIZE FIRST":"CHOOSE YOUR ANSWER";
+  renderBoard(p);renderAnswers(p);setupPuzzleInteraction(p);
   if(p.type==="memory"){
     $("#answersGrid").classList.add("waiting");$("#timerText").textContent="—";
     state.memoryTimeout=setTimeout(()=>{$("#memoryCurtain").classList.add("show");setTimeout(()=>{
@@ -286,6 +369,12 @@ function chooseAnswer(index){
   const p=state.run[state.index],buttons=$$(".answer-button"),isCorrect=index===p.correct;
   if(index>=0&&buttons[index])buttons[index].classList.add(isCorrect?"correct":"wrong");
   if(!isCorrect&&buttons[p.correct])buttons[p.correct].classList.add("correct");
+  if(p.type==="onemove"){
+    $(".gem-tower").forEach(t=>{
+      const model=p.towers.find(x=>x.label===t.dataset.tower);
+      if(model && model.height===3)t.classList.add("tower-balanced");
+    });
+  }
   const seconds=Math.max(0,Math.min(20,(Date.now()-state.questionStartedAt)/1000));state.responseTimes.push(seconds);
   if(!state.categoryResults[p.category])state.categoryResults[p.category]={correct:0,total:0};state.categoryResults[p.category].total+=1;
   if(isCorrect){state.correct+=1;state.categoryResults[p.category].correct+=1;$("#puzzleStage").classList.add("stage-correct");$("#feedbackTitle").textContent="Exactly right";$("#feedbackText").textContent=p.explanation;$("#feedbackIcon").textContent="✓"}
