@@ -58,3 +58,40 @@ button{font:inherit;color:inherit} button:focus-visible{outline:3px solid rgba(1
 @media(max-width:390px){.app-shell{padding-left:15px;padding-right:15px}.hero{padding-top:25px}.hero h1{font-size:38px}.daily-card{min-height:344px;padding:19px}.orbit-art{height:205px}.puzzle-board.sequence{grid-template-columns:repeat(3,70px);gap:10px}.sequence .tile{width:70px;height:70px}.puzzle-board.matrix{grid-template-columns:repeat(3,64px)}.matrix .tile{width:64px;height:64px}.answers-grid{gap:7px}.answer-button{min-height:74px}.skill-card{padding:11px 8px}}
 @media(min-width:700px){body{padding:20px 0}.app-shell{min-height:calc(100vh - 40px);border-radius:38px;background:rgba(247,245,239,.64);box-shadow:0 28px 90px rgba(71,64,98,.1)}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* Rich puzzle mechanics */
+.puzzle-board.onemove,.puzzle-board.balance,.puzzle-board.fold,.puzzle-board.shadow,.puzzle-board.path{width:100%}
+.move-board{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:end;padding:22px 10px 4px;position:relative}
+.gem-tower{height:180px;border-radius:25px;background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(248,246,241,.8));border:1px solid rgba(49,46,66,.06);box-shadow:0 9px 22px rgba(64,56,88,.07);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:14px 10px 13px}
+.tower-label{position:absolute;margin-top:-146px;width:30px;height:30px;border-radius:11px;background:#f0edf8;color:#7268a6;display:grid;place-items:center;font:800 11px "Manrope"}
+.gem-stack{display:flex;flex-direction:column-reverse;gap:5px;align-items:center;margin-bottom:8px}
+.gem{width:38px;height:21px;border-radius:50%;display:block;box-shadow:inset 0 2px 5px rgba(255,255,255,.6),inset 0 -4px 6px rgba(75,62,110,.11),0 5px 10px rgba(66,57,91,.09)}
+.gem.tone-peach{background:linear-gradient(#ffd1b8,#ffad7e)}.gem.tone-mint{background:linear-gradient(#d0f2e7,#9edcc8)}.gem.tone-violet{background:linear-gradient(#b9affb,#7a69e5)}
+.tower-count{font:800 11px "Manrope";color:#918d9c}.move-goal{grid-column:1/-1;text-align:center;margin-top:2px;color:#767281;font-size:9px;font-weight:800;letter-spacing:.12em}.move-goal span{color:var(--violet);padding:0 5px}
+
+.balance-board{width:100%;display:grid;gap:28px;padding:20px 7px 5px}
+.scale{height:92px;position:relative}.scale .beam{position:absolute;left:50%;top:24px;width:78%;height:7px;border-radius:999px;background:linear-gradient(90deg,#b9b4c4,#777184,#b9b4c4);transform:translateX(-50%)}.scale .pivot{position:absolute;left:50%;top:23px;transform:translateX(-50%);color:#6e6680;font-size:28px;line-height:1}
+.scale::after{content:"";position:absolute;left:50%;top:48px;transform:translateX(-50%);width:8px;height:36px;border-radius:5px;background:#8b8494}
+.pan{position:absolute;top:17px;width:105px;height:60px;display:flex;align-items:flex-end;justify-content:center;gap:2px;padding-bottom:3px}.pan::before{content:"";position:absolute;left:10px;right:10px;bottom:0;height:5px;border-radius:999px;background:#d7d2dc}.pan::after{content:"";position:absolute;left:50%;bottom:4px;width:1px;height:39px;background:#c3bdca;transform-origin:bottom}.pan.left{left:0}.pan.right{right:0}.pan.left::after{transform:translateX(-50%) rotate(19deg)}.pan.right::after{transform:translateX(-50%) rotate(-19deg)}
+.pan .mini-shape{width:36px;height:36px}.mystery-weight{width:33px;height:33px;border-radius:12px;background:var(--violet-soft);color:var(--violet);display:grid;place-items:center;font:800 16px "Manrope"}
+
+.fold-board{width:100%;display:flex;flex-direction:column;align-items:center;gap:18px;padding:10px 0}
+.paper{width:184px;height:184px;border-radius:22px;background:linear-gradient(145deg,#fff,#f2f5ff);border:1px solid rgba(73,67,99,.08);box-shadow:0 16px 30px rgba(60,55,86,.1);position:relative;overflow:hidden}
+.paper::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 49.5%,rgba(109,92,231,.06) 50%,transparent 50.5%),linear-gradient(transparent 49.5%,rgba(109,92,231,.06) 50%,transparent 50.5%)}
+.fold-line{position:absolute;border-color:#9d92e9;border-style:dashed;opacity:.9}.fold-line.vertical{top:12px;bottom:12px;left:50%;border-left-width:1px}.fold-line.horizontal{left:12px;right:12px;top:50%;border-top-width:1px}.punch{position:absolute;right:28px;bottom:28px;width:15px;height:15px;border-radius:50%;background:#ffb07f;box-shadow:0 0 0 6px rgba(255,176,127,.14)}.fold-arrow{position:absolute;color:var(--violet);font:800 22px "Manrope"}.arrow-x{right:12px;top:74px}.arrow-y{left:84px;bottom:8px}.fold-steps{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}.fold-steps span{padding:6px 8px;border-radius:999px;background:#f1eef8;color:#777185;font-size:8px;font-weight:800}
+.dot-pattern{width:52px;height:52px;border-radius:12px;border:1px solid rgba(56,52,72,.1);background:#fbfaf7;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:7px}.dot-pattern i{border-radius:50%;background:transparent}.dot-pattern i.on{background:var(--peach);box-shadow:0 2px 5px rgba(179,102,65,.14)}
+.pattern-answer{padding:8px}
+
+.shadow-board{width:100%;height:228px;position:relative;display:grid;place-items:center}.light-source{position:absolute;right:22px;top:10px;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#fff1b9;color:#d59a17;font-size:20px;box-shadow:0 0 0 10px rgba(255,223,119,.12)}
+.object-cluster{position:absolute;left:54px;top:48px;width:130px;height:120px}.float-shape{position:absolute;display:block;box-shadow:0 12px 18px rgba(77,67,101,.1),inset 0 2px 3px rgba(255,255,255,.55)}.fs-a{width:48px;height:48px;border-radius:16px;background:linear-gradient(145deg,#ffcfb2,#ffab79);left:8px;top:42px}.fs-b{width:38px;height:38px;border-radius:50%;background:linear-gradient(145deg,#c5bdf9,#7d6ce5);left:54px;top:10px}.fs-c{width:43px;height:43px;border-radius:13px;background:linear-gradient(145deg,#d0f1e7,#9ddac7);left:81px;top:56px;transform:rotate(18deg)}.fs-d{width:33px;height:33px;border-radius:50%;background:linear-gradient(145deg,#ffe7a8,#ffd26b);left:57px;top:83px}
+.shadow-floor{position:absolute;right:26px;bottom:14px;width:142px;height:88px;border-radius:50%;background:linear-gradient(180deg,#f0eee8,#e7e4df);transform:skewX(-10deg);display:grid;place-items:center;overflow:hidden}.shadow-floor .shadow-choice{width:92px;height:72px;opacity:.28;transform:skewX(10deg)}
+.shadow-choice{width:60px;height:60px}.shadow-choice circle{fill:#54505c}.shadow-answer{padding:5px}
+
+.path-map{width:100%;max-width:330px;height:auto;filter:drop-shadow(0 8px 12px rgba(65,57,87,.07))}
+.puzzle-board.path{display:grid;place-items:center}
+.answers-grid:has(.answer-text .answer-sub){align-items:stretch}
+
+@media(max-width:390px){
+  .move-board{gap:9px;padding-left:0;padding-right:0}.gem-tower{height:168px}.gem{width:34px;height:19px}
+  .paper{width:166px;height:166px}.shadow-board{height:215px}.object-cluster{left:35px}.shadow-floor{right:10px;width:130px}
+}
