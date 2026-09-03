@@ -109,3 +109,51 @@ button{font:inherit;color:inherit} button:focus-visible{outline:3px solid rgba(1
 .light-ray{position:absolute;right:58px;top:48px;width:118px;height:1px;background:linear-gradient(90deg,rgba(244,197,80,.45),rgba(244,197,80,0));transform-origin:right center;opacity:.65}
 .ray-a{transform:rotate(148deg)}.ray-b{transform:rotate(164deg)}
 .soft-cast{width:92px;height:35px;border-radius:50%;background:radial-gradient(ellipse,rgba(62,58,70,.24),rgba(62,58,70,.04) 68%,transparent 72%);filter:blur(3px);display:block;transform:skewX(12deg)}
+
+
+/* Direct-manipulation puzzles */
+.answers-grid.interaction-hidden{
+  position:absolute!important;
+  width:1px!important;height:1px!important;
+  overflow:hidden!important;
+  clip:rect(0 0 0 0)!important;
+  clip-path:inset(50%)!important;
+  white-space:nowrap!important;
+}
+.answer-label.interaction-label{color:var(--violet);font-size:10px}
+.gem-tower{
+  appearance:none;-webkit-appearance:none;color:inherit;font:inherit;cursor:pointer;
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease,background .2s ease;
+  position:relative
+}
+.gem-tower:hover{transform:translateY(-3px);box-shadow:0 13px 28px rgba(64,56,88,.11)}
+.gem-tower:active{transform:translateY(-1px) scale(.985)}
+.gem-tower.selected-source{
+  border-color:rgba(109,92,231,.42);
+  background:linear-gradient(180deg,#fff,#f1edff);
+  box-shadow:0 14px 30px rgba(109,92,231,.15)
+}
+.gem-tower.selected-source::after{
+  content:"MOVE FROM HERE";position:absolute;left:50%;bottom:-26px;transform:translateX(-50%);
+  white-space:nowrap;font-size:7px;font-weight:900;letter-spacing:.1em;color:var(--violet)
+}
+.tower-action{
+  position:absolute;right:8px;top:8px;padding:3px 6px;border-radius:999px;background:#f1eef8;
+  color:#8d879a;font-size:7px;font-weight:800;text-transform:uppercase
+}
+.gem-tower.tower-balanced{
+  border-color:rgba(44,167,124,.26);background:linear-gradient(180deg,#fff,#effaf5)
+}
+.gem-lift{animation:gemLift .22s ease forwards}
+.gem-drop{animation:gemDrop .32s cubic-bezier(.2,.9,.25,1)}
+@keyframes gemLift{to{transform:translateY(-20px) scale(.8);opacity:0}}
+@keyframes gemDrop{from{transform:translateY(-28px) scale(.7);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+
+.path-route{cursor:pointer;outline:none}
+.path-route .path-visible{transition:stroke-width .2s ease,filter .2s ease,opacity .2s ease}
+.path-route:hover .path-visible,.path-route:focus .path-visible{stroke-width:11;filter:drop-shadow(0 3px 5px rgba(76,66,105,.14))}
+.path-route.route-chosen .path-visible{stroke-width:12}
+.path-route.route-correct .path-visible{filter:drop-shadow(0 0 7px rgba(44,167,124,.36));stroke-width:12}
+.path-route.route-wrong .path-visible{opacity:.38}
+.path-star{animation:starFloat 2.2s ease-in-out infinite}
+@keyframes starFloat{0%,100%{transform:translate(var(--sx,0),var(--sy,0)) scale(1)}50%{transform:translate(var(--sx,0),var(--sy,0)) scale(1.08)}}
