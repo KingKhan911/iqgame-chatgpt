@@ -306,7 +306,7 @@ function setInteractiveMode(active,label=""){
 function setupOneMove(p){
   setInteractiveMode(true,"TAP A SOURCE, THEN A DESTINATION");
   let source=null,committed=false;
-  const towers=$(".gem-tower");
+  const towers=$$(".gem-tower");
   towers.forEach(tower=>{
     tower.addEventListener("click",()=>{
       if(state.answered||committed)return;
@@ -358,7 +358,7 @@ function setupOneMove(p){
 function setupBalance(p){
   setInteractiveMode(true,"DRAG OR TAP A SHAPE ONTO THE ? PAN");
   const dropzone=$(".balance-dropzone");
-  const pieces=$(".balance-piece");
+  const pieces=$$(".balance-piece");
   let submitted=false;
 
   const submit=index=>{
