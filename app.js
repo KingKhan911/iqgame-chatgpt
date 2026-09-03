@@ -184,7 +184,7 @@ function makePracticeRun(skill="Mixed"){
   return ramp([makeOneMove(rand),makePath(rand),makeBalance(rand),makeFold(rand),makeShadow(rand)]);
 }
 
-const state={index:0,correct:0,answered:false,timeLeft:20,currentLimit:20,timer:null,pendingTimeouts:new Set(),responseTimes:[],categoryResults:{},questionStartedAt:0,run:[],mode:"daily",skill:""};
+const state={index:0,correct:0,answered:false,transitioning:false,timeLeft:20,currentLimit:20,timer:null,pendingTimeouts:new Set(),responseTimes:[],categoryResults:{},questionStartedAt:0,run:[],mode:"daily",skill:""};
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const screens={home:$("#homeScreen"),game:$("#gameScreen"),result:$("#resultScreen"),practice:$("#practiceScreen"),profile:$("#profileScreen")};
 
@@ -205,6 +205,7 @@ function showScreen(name){
   Object.values(screens).forEach(screen=>screen.classList.remove("is-active"));
   screens[name].classList.add("is-active");
   $("#bottomNav").style.display=(name==="home"||name==="practice"||name==="profile")?"flex":"none";
+  if(name!=="game")$("#feedbackCard")?.classList.remove("show","bad");
   $$(".nav-item").forEach(item=>item.classList.toggle("active",item.dataset.nav===name));
   window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -224,9 +225,6 @@ function tileMarkup(item,index,numbered=false){
 }
 
 function pathSvg(winner){
-  const endings=[
-    [278,55],[278,92],[278,129],[278,166]
-  ];
   const colors=["#ffaf82","#84cdb9","#8b78ec","#82b7f1"];
   const starts=[42,78,114,150];
   const routes=[
@@ -237,7 +235,7 @@ function pathSvg(winner){
   ];
   const starX=278,starY=starts[winner];
   const routeGroups=routes.map((pts,i)=>{
-    const end=i===winner?[starX-16,starY]:endings[(i+1)%4];
+    const end=i===winner?[starX-16,starY]:[250,starts[i]];
     const all=[...pts,end];
     const points=all.map(p=>p.join(",")).join(" ");
     return `<g class="path-route" data-route="${i}" tabindex="0" role="button" aria-label="Choose path ${["A","B","C","D"][i]}">
@@ -467,7 +465,7 @@ function renderAnswers(p){
   $$(".answer-button").forEach(btn=>btn.addEventListener("click",()=>chooseAnswer(Number(btn.dataset.answer))));
 }
 function resetRun(){
-  clearInterval(state.timer);clearGameplaySchedules();state.index=0;state.correct=0;state.answered=false;state.responseTimes=[];state.categoryResults={};
+  clearInterval(state.timer);clearGameplaySchedules();state.index=0;state.correct=0;state.answered=false;state.transitioning=false;state.responseTimes=[];state.categoryResults={};
 }
 function startRun(){resetRun();state.mode="daily";state.skill="";state.run=makeDailyRun();showScreen("game");renderPuzzle()}
 function startPractice(skill="Mixed"){resetRun();state.mode="practice";state.skill=skill;state.run=makePracticeRun(skill);showScreen("game");renderPuzzle()}
@@ -502,7 +500,7 @@ function animateScoreValue(target){
   requestAnimationFrame(tick);
 }
 function renderPuzzle(){
-  clearInterval(state.timer);clearGameplaySchedules();state.answered=false;
+  clearInterval(state.timer);clearGameplaySchedules();state.answered=false;state.transitioning=false;
   const p=state.run[state.index];
   state.currentLimit=p.timeLimit||20;
   $("#questionCounter").textContent=`${state.index+1} of ${state.run.length}`;$("#gameCategory").textContent=`${p.category} · ${p.difficulty||"STEADY"}`;$("#stageChip").textContent=p.category;
@@ -540,16 +538,20 @@ function chooseAnswer(index,answeredAt=Date.now()){
   $("#nextButton").innerHTML=state.index===state.run.length-1?'See score <span>→</span>':'Next <span>→</span>';scheduleGameplay(()=>$("#feedbackCard").classList.add("show"),120);
 }
 function nextPuzzle(){
-  if(!state.answered)return;
+  if(!state.answered||state.transitioning)return;
+  state.transitioning=true;
+  $("#feedbackCard").classList.remove("show");
   if(state.index<state.run.length-1){
     const stage=$("#puzzleStage");
     stage.classList.add("puzzle-leaving");
-    $("#feedbackCard").classList.remove("show");
     scheduleGameplay(()=>{state.index+=1;renderPuzzle()},220);
-  }else finishRun();
+  }else{
+    finishRun();
+  }
 }
 function finishRun(){
-  clearInterval(state.timer);clearGameplaySchedules();
+  clearInterval(state.timer);clearGameplaySchedules();state.transitioning=false;
+  $("#feedbackCard").classList.remove("show","bad");
   const accuracy=state.correct/state.run.length,avgTime=state.responseTimes.length?state.responseTimes.reduce((a,b)=>a+b,0)/state.responseTimes.length:20;
   const speedBonus=Math.max(0,Math.round((22-avgTime)*3.5)),score=Math.min(999,Math.round(500+accuracy*350+speedBonus));
   const rank=score>=900?"Mastermind":score>=825?"Brilliant":score>=750?"Sharp":score>=675?"Focused":"Warming Up";
@@ -653,7 +655,14 @@ function saveRunProgress(score,accuracy){
 }
 function refreshProgressUI(){
   const p=loadProgress(),level=Math.floor(p.xp/500)+1,within=p.xp%500;
-  if(p.lastDay && p.streak===0){p.streak=1;storage.setItem("iqgames-streak","1")}
+  const gap=p.lastDay?daysBetweenKeys(p.lastDay,localDateKey()):null;
+  if(gap!==null && (gap>1||gap<0)){
+    p.streak=0;
+    storage.setItem("iqgames-streak","0");
+  }else if(p.lastDay && p.streak===0){
+    p.streak=1;
+    storage.setItem("iqgames-streak","1");
+  }
   $("#headerStreak").textContent=p.streak;
   $("#homeStreak").textContent=p.streak+(p.streak===1?" day":" days");
   $("#streakGoal").textContent=Math.min(p.streak,7)+"/7";
