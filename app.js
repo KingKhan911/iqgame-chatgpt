@@ -565,7 +565,19 @@ function finishRun(){
   }
   const reward=saveRunProgress(score,accuracy);
   renderRunReward(reward);
-  showScreen("result");$("#resultScreen").classList.add("result-reveal");animateScoreValue(score);requestAnimationFrame(()=>setTimeout(()=>{$("#patternBar").style.width=pattern+"%";$("#logicBar").style.width=logic+"%";$("#focusBar").style.width=focus+"%";$("#speedBar").style.width=speed+"%"},250));
+  const resultScreen=$("#resultScreen");
+  resultScreen.classList.remove("result-reveal");
+  ["pattern","logic","focus","speed"].forEach(name=>$("#"+name+"Bar").style.width="0%");
+  showScreen("result");
+  void resultScreen.offsetWidth;
+  resultScreen.classList.add("result-reveal");
+  animateScoreValue(score);
+  requestAnimationFrame(()=>setTimeout(()=>{
+    $("#patternBar").style.width=pattern+"%";
+    $("#logicBar").style.width=logic+"%";
+    $("#focusBar").style.width=focus+"%";
+    $("#speedBar").style.width=speed+"%";
+  },250));
 }
 
 function loadProgress(){
@@ -750,6 +762,14 @@ async function shareScore(){
     if(error?.name!=="AbortError")showToast("Sharing wasn’t available");
   }
 }
+window.addEventListener?.("error",event=>{
+  console.error?.("IQ Games runtime error",event.error||event.message);
+  showToast("Something went wrong — try that puzzle again.");
+});
+window.addEventListener?.("unhandledrejection",event=>{
+  console.error?.("IQ Games promise error",event.reason);
+});
+
 $("#startRunButton").addEventListener("click",startRun);$("#nextButton").addEventListener("click",nextPuzzle);
 $("#exitGameButton").addEventListener("click",goHome);$("#homeButton").addEventListener("click",goHome);$("#brandButton").addEventListener("click",goHome);$("#shareButton").addEventListener("click",shareScore);
 $("#practiceButton").addEventListener("click",()=>showScreen("practice"));
