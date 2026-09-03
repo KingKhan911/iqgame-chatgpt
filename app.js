@@ -307,11 +307,11 @@ function setInteractiveMode(active,label=""){
 
 function setupOneMove(p){
   setInteractiveMode(true,"TAP A SOURCE, THEN A DESTINATION");
-  let source=null;
-  const towers=$$(".gem-tower");
+  let source=null,committed=false;
+  const towers=$(".gem-tower");
   towers.forEach(tower=>{
     tower.addEventListener("click",()=>{
-      if(state.answered)return;
+      if(state.answered||committed)return;
       const label=tower.dataset.tower;
       if(!source){
         source=label;
@@ -329,6 +329,10 @@ function setupOneMove(p){
       const destinationTower=p.towers.find(t=>t.label===label);
       if(!sourceTower || !destinationTower || sourceTower.height<1)return;
 
+      committed=true;
+      clearInterval(state.timer);
+      const answeredAt=Date.now();
+      towers.forEach(t=>t.disabled=true);
       sourceTower.height-=1;destinationTower.height+=1;
       const sourceEl=$(`.gem-tower[data-tower="${source}"]`);
       const destinationEl=$(`.gem-tower[data-tower="${label}"]`);
@@ -348,7 +352,7 @@ function setupOneMove(p){
 
       const isCorrectMove=source===p.source && label===p.destination;
       const answerIndex=isCorrectMove?p.correct:p.answers.findIndex((_,i)=>i!==p.correct);
-      scheduleGameplay(()=>chooseAnswer(answerIndex),320);
+      scheduleGameplay(()=>chooseAnswer(answerIndex,answeredAt),320);
     });
   });
 }
@@ -356,13 +360,17 @@ function setupOneMove(p){
 function setupBalance(p){
   setInteractiveMode(true,"DRAG OR TAP A SHAPE ONTO THE ? PAN");
   const dropzone=$(".balance-dropzone");
-  const pieces=$$(".balance-piece");
+  const pieces=$(".balance-piece");
+  let submitted=false;
 
   const submit=index=>{
-    if(state.answered)return;
+    if(state.answered||submitted)return;
     const chosen=pieces[index];
     if(!chosen)return;
-    pieces.forEach(piece=>piece.classList.remove("chosen"));
+    submitted=true;
+    clearInterval(state.timer);
+    const answeredAt=Date.now();
+    pieces.forEach(piece=>{piece.classList.remove("chosen");piece.disabled=true});
     chosen.classList.add("chosen");
     dropzone.classList.add("filled");
     const mystery=dropzone.querySelector(".mystery-weight");
@@ -371,7 +379,7 @@ function setupBalance(p){
       mystery.classList.add("placed-weight");
     }
     $(".interactive-scale")?.classList.add(index===p.correct?"balanced":"unbalanced");
-    scheduleGameplay(()=>chooseAnswer(index),300);
+    scheduleGameplay(()=>chooseAnswer(index,answeredAt),300);
   };
 
   pieces.forEach((piece,index)=>{
@@ -513,7 +521,7 @@ function renderPuzzle(){
     },420)},p.revealAfter);
   }else startTimer();
 }
-function chooseAnswer(index){
+function chooseAnswer(index,answeredAt=Date.now()){
   if(state.answered||$("#answersGrid").classList.contains("waiting"))return;
   state.answered=true;clearInterval(state.timer);clearGameplaySchedules();
   const p=state.run[state.index],buttons=$$(".answer-button"),isCorrect=index===p.correct;
@@ -525,7 +533,7 @@ function chooseAnswer(index){
       if(model && model.height===3)t.classList.add("tower-balanced");
     });
   }
-  const seconds=Math.max(0,Math.min(state.currentLimit||20,(Date.now()-state.questionStartedAt)/1000));state.responseTimes.push(seconds);
+  const seconds=Math.max(0,Math.min(state.currentLimit||20,(answeredAt-state.questionStartedAt)/1000));state.responseTimes.push(seconds);
   if(!state.categoryResults[p.category])state.categoryResults[p.category]={correct:0,total:0};state.categoryResults[p.category].total+=1;
   if(isCorrect){state.correct+=1;state.categoryResults[p.category].correct+=1;$("#puzzleStage").classList.add("stage-correct");celebrateStage();$("#feedbackTitle").textContent="Exactly right";$("#feedbackText").textContent=p.explanation;$("#feedbackIcon").textContent="✓"}
   else{$("#puzzleStage").classList.add("stage-wrong");$("#feedbackCard").classList.add("bad");$("#feedbackTitle").textContent=index<0?"Time’s up":"Good try";$("#feedbackText").textContent=p.explanation;$("#feedbackIcon").textContent="↗"}
