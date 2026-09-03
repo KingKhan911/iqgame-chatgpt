@@ -479,3 +479,12 @@ button{font:inherit;color:inherit} button:focus-visible{outline:3px solid rgba(1
 @media(max-width:390px){
   .object-cluster-svg{left:24px;width:148px;height:148px}
 }
+
+/* Mobile interaction reliability */
+.daily-card,.gem-tower,.balance-piece,.paper-stage,.answer-button,.skill-card,.practice-feature,.practice-category,.nav-item,.text-button,.icon-button,.primary-button,.secondary-button{
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+.path-route{pointer-events:all;touch-action:manipulation}
+.path-hit{pointer-events:stroke;cursor:pointer}
+.path-visible{pointer-events:none}
