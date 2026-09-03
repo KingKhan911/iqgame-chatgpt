@@ -431,3 +431,11 @@ button{font:inherit;color:inherit} button:focus-visible{outline:3px solid rgba(1
   .daily-card{min-height:374px}
   .daily-mix{gap:6px;padding:9px}
 }
+
+
+/* Difficulty arc */
+#puzzleStage[data-difficulty="WARM-UP"] .stage-chip{background:#e9f7f1;color:#2f876c}
+#puzzleStage[data-difficulty="STEADY"] .stage-chip{background:#f1eefc;color:#7164c8}
+#puzzleStage[data-difficulty="STRETCH"] .stage-chip{background:#fff0df;color:#b16d43}
+#puzzleStage[data-difficulty="FINAL"] .stage-chip{background:#fff0c8;color:#a77312}
+.progress-meta span:last-child{max-width:62%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
