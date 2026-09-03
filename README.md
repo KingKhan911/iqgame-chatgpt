@@ -13,7 +13,7 @@ Design principles:
 - Strong visual hierarchy and large tap targets
 - Short daily session: seven varied puzzles
 - Gameplay should be attractive enough to become App Store screenshots
-- No claims that the game measures clinical IQ
+- No claims that the game measures clinical IQ or fabricated population percentiles
 - Fast, satisfying feedback with restrained animation
 
 ## Current prototype
@@ -60,3 +60,8 @@ Then visit `http://localhost:8000`.
 - Refine scoring from playtest data
 - Create App Store icon and screenshots from real gameplay
 - Add sound and haptics when the product moves to native
+
+
+## Data integrity
+
+The prototype intentionally avoids simulated social proof or fake percentile rankings. Personal stats shown in the UI are derived from local play history. Population ranking can be added later only if backed by real leaderboard data.
