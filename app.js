@@ -554,7 +554,8 @@ function finishRun(){
     const previousBest=Number(localStorage.getItem("iqgames-best")||0),newBest=Math.max(score,previousBest);
     localStorage.setItem("iqgames-best",String(newBest));$("#homeBestScore").textContent=newBest||"—";
   }
-  saveRunProgress(score,accuracy);
+  const reward=saveRunProgress(score,accuracy);
+  renderRunReward(reward);
   showScreen("result");$("#resultScreen").classList.add("result-reveal");animateScoreValue(score);requestAnimationFrame(()=>setTimeout(()=>{$("#patternBar").style.width=pattern+"%";$("#logicBar").style.width=logic+"%";$("#focusBar").style.width=focus+"%";$("#speedBar").style.width=speed+"%"},250));
 }
 
@@ -567,6 +568,8 @@ function loadProgress(){
     questions:Number(localStorage.getItem("iqgames-questions")||0),
     streak:Number(localStorage.getItem("iqgames-streak")||0),
     lastDay:localStorage.getItem("iqgames-last-day")||"",
+    rewardDay:localStorage.getItem("iqgames-reward-day")||"",
+    shards:Number(localStorage.getItem("iqgames-shards")||0),
     sharp:localStorage.getItem("iqgames-badge-sharp")==="1"
   };
 }
@@ -578,13 +581,10 @@ function daysBetweenKeys(a,b){
 function saveRunProgress(score,accuracy){
   const p=loadProgress();
   p.runs+=1;p.correct+=state.correct;p.questions+=state.run.length;
-  const earnedXp=Math.round(60+state.correct*14+Math.max(0,score-600)/8);
+  let earnedXp=Math.round(55+state.correct*13+Math.max(0,score-600)/9);
+  let dailyBonus=false;
   p.xp+=earnedXp;
   if(accuracy>=.8){p.sharp=true;localStorage.setItem("iqgames-badge-sharp","1")}
-  localStorage.setItem("iqgames-xp",String(p.xp));
-  localStorage.setItem("iqgames-runs",String(p.runs));
-  localStorage.setItem("iqgames-correct",String(p.correct));
-  localStorage.setItem("iqgames-questions",String(p.questions));
 
   if(state.mode==="daily"){
     const today=localDateKey();
@@ -594,8 +594,20 @@ function saveRunProgress(score,accuracy){
       localStorage.setItem("iqgames-streak",String(p.streak));
       localStorage.setItem("iqgames-last-day",today);
     }
+    if(p.rewardDay!==today){
+      dailyBonus=true;
+      earnedXp+=75;p.xp+=75;p.shards+=1;
+      localStorage.setItem("iqgames-reward-day",today);
+      localStorage.setItem("iqgames-shards",String(p.shards));
+    }
   }
+
+  localStorage.setItem("iqgames-xp",String(p.xp));
+  localStorage.setItem("iqgames-runs",String(p.runs));
+  localStorage.setItem("iqgames-correct",String(p.correct));
+  localStorage.setItem("iqgames-questions",String(p.questions));
   refreshProgressUI();
+  return {earnedXp,dailyBonus,streak:p.streak,shards:p.shards};
 }
 function refreshProgressUI(){
   const p=loadProgress(),level=Math.floor(p.xp/500)+1,within=p.xp%500;
@@ -619,6 +631,33 @@ function refreshProgressUI(){
   $("#dailyStatusText").textContent=completed?"Replay it or train a skill":"Fresh challenge every day";
   $("#dailyCtaText").textContent=completed?"Run complete ✓":"Start today’s run";
   $("#startRunButton").classList.toggle("completed",completed);
+}
+
+function renderRunReward(reward){
+  const card=$("#runRewardCard"),week=$("#streakWeek");
+  card.classList.remove("daily","practice","bonus");
+  card.classList.add(state.mode==="daily"?"daily":"practice");
+  if(state.mode==="daily" && reward.dailyBonus)card.classList.add("bonus");
+
+  $("#runRewardKicker").textContent=state.mode==="daily"?"DAILY COMPLETION":"PRACTICE XP";
+  if(state.mode==="daily" && reward.dailyBonus){
+    $("#runRewardTitle").textContent="Daily crystal earned";
+    $("#runRewardText").textContent=`+${reward.earnedXp} XP · ${reward.shards} crystal${reward.shards===1?"":"s"} collected. New challenge tomorrow.`;
+  }else if(state.mode==="daily"){
+    $("#runRewardTitle").textContent="Today’s run replayed";
+    $("#runRewardText").textContent=`+${reward.earnedXp} XP · Your daily crystal is already safe.`;
+  }else{
+    $("#runRewardTitle").textContent=`+${reward.earnedXp} XP added`;
+    $("#runRewardText").textContent="Short practice still moves your level forward.";
+  }
+
+  if(state.mode==="daily"){
+    week.hidden=false;
+    const lit=Math.min(7,reward.streak||0);
+    week.innerHTML=Array.from({length:7},(_,i)=>`<span class="${i<lit?"lit":""}">${i<lit?"✓":i+1}</span>`).join("");
+  }else{
+    week.hidden=true;week.innerHTML="";
+  }
 }
 
 function goHome(){clearInterval(state.timer);clearTimeout(state.memoryTimeout);showScreen("home");$("#feedbackCard").classList.remove("show")}
