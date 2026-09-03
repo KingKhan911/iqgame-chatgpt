@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f7f5ef" />
+  <meta name="description" content="IQ Games — beautiful daily logic challenges." />
+  <title>IQ Games — Brain Challenge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <main class="app-shell" aria-live="polite">
+    <header class="topbar">
+      <button class="brand" id="brandButton" aria-label="Go home">
+        <span class="brand-mark" aria-hidden="true">
+          <span class="brand-ring"></span>
+          <span class="brand-dot"></span>
+        </span>
+        <span class="brand-copy">
+          <strong>IQ Games</strong>
+          <small>Brain Challenge</small>
+        </span>
+      </button>
+
+      <button class="streak-pill" aria-label="Current streak">
+        <span aria-hidden="true">🔥</span>
+        <strong id="headerStreak">7</strong>
+      </button>
+    </header>
+
+    <section class="screen is-active" id="homeScreen" data-screen="home">
+      <div class="hero">
+        <div class="eyebrow"><span></span> Today’s challenge</div>
+        <h1>How sharp is your<br><em>mind today?</em></h1>
+        <p>Seven beautifully simple puzzles. One score that’s yours to beat.</p>
+      </div>
+
+      <button class="daily-card" id="startRunButton">
+        <div class="daily-card-top">
+          <div>
+            <span class="card-kicker">DAILY IQ RUN</span>
+            <h2>Friday Focus</h2>
+          </div>
+          <div class="run-count">7<span>games</span></div>
+        </div>
+
+        <div class="orbit-art" aria-hidden="true">
+          <div class="orbit orbit-a"></div>
+          <div class="orbit orbit-b"></div>
+          <div class="orb orb-one"></div>
+          <div class="orb orb-two"></div>
+          <div class="orb orb-three"></div>
+          <div class="orb orb-four"></div>
+          <div class="center-gem">
+            <span>IQ</span>
+          </div>
+        </div>
+
+        <div class="daily-card-bottom">
+          <div class="mini-avatars" aria-hidden="true">
+            <span>◆</span><span>●</span><span>▲</span>
+          </div>
+          <span class="community-copy">12,481 minds played today</span>
+          <span class="arrow-button" aria-hidden="true">→</span>
+        </div>
+      </button>
+
+      <section class="section-block">
+        <div class="section-heading">
+          <div>
+            <span class="card-kicker muted">YOUR MIND</span>
+            <h3>Brain profile</h3>
+          </div>
+          <button class="text-button" id="practiceButton">Practice</button>
+        </div>
+
+        <div class="stats-grid">
+          <article class="stat-card score-card">
+            <span class="stat-icon">✦</span>
+            <strong id="homeBestScore">842</strong>
+            <span>Best score</span>
+            <div class="spark-bars" aria-hidden="true">
+              <i style="height:35%"></i><i style="height:52%"></i><i style="height:43%"></i>
+              <i style="height:68%"></i><i style="height:60%"></i><i style="height:84%"></i><i style="height:76%"></i>
+            </div>
+          </article>
+          <article class="stat-card">
+            <span class="stat-icon lavender">◎</span>
+            <strong>Top 12%</strong>
+            <span>This week</span>
+            <div class="ring-progress"><b>88</b></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-block">
+        <div class="section-heading compact">
+          <div>
+            <span class="card-kicker muted">QUICK PLAY</span>
+            <h3>Train a skill</h3>
+          </div>
+        </div>
+
+        <div class="skill-row">
+          <button class="skill-card" data-skill="Pattern">
+            <span class="skill-art pattern-art">◇</span>
+            <span><strong>Pattern</strong><small>12 levels</small></span>
+          </button>
+          <button class="skill-card" data-skill="Logic">
+            <span class="skill-art logic-art">⌁</span>
+            <span><strong>Logic</strong><small>10 levels</small></span>
+          </button>
+          <button class="skill-card" data-skill="Spatial">
+            <span class="skill-art spatial-art">⬡</span>
+            <span><strong>Spatial</strong><small>8 levels</small></span>
+          </button>
+        </div>
+      </section>
+    </section>
+
+    <section class="screen" id="gameScreen" data-screen="game">
+      <div class="game-head">
+        <button class="icon-button" id="exitGameButton" aria-label="Exit challenge">×</button>
+        <div class="progress-wrap">
+          <div class="progress-meta">
+            <span id="questionCounter">1 of 7</span>
+            <span id="gameCategory">PATTERN</span>
+          </div>
+          <div class="progress-track"><span id="progressBar"></span></div>
+        </div>
+        <div class="timer-pill"><span>◷</span><strong id="timerText">20</strong></div>
+      </div>
+
+      <div class="challenge-copy">
+        <span class="eyebrow centered"><span></span> Think carefully</span>
+        <h2 id="questionTitle">What comes next?</h2>
+        <p id="questionHint">Find the hidden rule in the sequence.</p>
+      </div>
+
+      <div class="puzzle-stage">
+        <div class="sequence-grid" id="sequenceGrid"></div>
+      </div>
+
+      <div class="answer-label">CHOOSE YOUR ANSWER</div>
+      <div class="answers-grid" id="answersGrid"></div>
+
+      <div class="feedback-card" id="feedbackCard" role="status">
+        <div class="feedback-icon" id="feedbackIcon">✓</div>
+        <div>
+          <strong id="feedbackTitle">Exactly right</strong>
+          <p id="feedbackText">You spotted the rule.</p>
+        </div>
+        <button id="nextButton">Next <span>→</span></button>
+      </div>
+    </section>
+
+    <section class="screen" id="resultScreen" data-screen="result">
+      <div class="result-top">
+        <span class="eyebrow centered"><span></span> Daily run complete</span>
+        <h2>Beautiful thinking.</h2>
+        <p>Here’s how your mind performed today.</p>
+      </div>
+
+      <div class="score-orbit">
+        <div class="score-ring ring-one"></div>
+        <div class="score-ring ring-two"></div>
+        <div class="score-core">
+          <small>BRAIN SCORE</small>
+          <strong id="finalScore">842</strong>
+          <span id="scoreDelta">↑ +18 today</span>
+        </div>
+        <span class="score-star star-a">✦</span>
+        <span class="score-star star-b">✦</span>
+        <span class="score-star star-c">✦</span>
+      </div>
+
+      <div class="rank-banner">
+        <div class="rank-icon">♢</div>
+        <div><small>TODAY’S RANK</small><strong id="rankText">Top 12%</strong></div>
+        <span id="correctText">6 / 7 correct</span>
+      </div>
+
+      <div class="ability-card">
+        <div class="ability-row">
+          <span>Pattern</span><div><i id="patternBar"></i></div><strong id="patternScore">92</strong>
+        </div>
+        <div class="ability-row">
+          <span>Logic</span><div><i id="logicBar"></i></div><strong id="logicScore">84</strong>
+        </div>
+        <div class="ability-row">
+          <span>Speed</span><div><i id="speedBar"></i></div><strong id="speedScore">88</strong>
+        </div>
+      </div>
+
+      <div class="result-actions">
+        <button class="primary-button" id="shareButton">Share my score <span>↗</span></button>
+        <button class="secondary-button" id="homeButton">Back home</button>
+      </div>
+    </section>
+
+    <nav class="bottom-nav" id="bottomNav" aria-label="Main navigation">
+      <button class="nav-item active" data-nav="home"><span>⌂</span><small>Today</small></button>
+      <button class="nav-item" data-nav="practice"><span>◇</span><small>Practice</small></button>
+      <button class="nav-item" data-nav="profile"><span>◎</span><small>Profile</small></button>
+    </nav>
+  </main>
+
+  <div class="toast" id="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
