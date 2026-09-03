@@ -498,6 +498,8 @@ function finishRun(){
   $("#insightText").textContent=growth.name===strongest.name
     ?"Balanced run — try a mixed sprint to keep pushing."
     :`Want to improve next? Train ${growth.practice.toLowerCase()} for a few rounds.`;
+  $("#insightPracticeButton").dataset.skill=growth.name===strongest.name?"Mixed":growth.practice;
+  $("#insightPracticeButton").textContent=growth.name===strongest.name?"Try mixed sprint →":`Train ${growth.practice} →`;
 
   if(state.mode==="daily"){
     const previousBest=Number(localStorage.getItem("iqgames-best")||0),newBest=Math.max(score,previousBest);
@@ -661,6 +663,7 @@ $(".nav-item").forEach(item=>item.addEventListener("click",()=>{
   else if(item.dataset.nav==="profile"){refreshProgressUI();showScreen("profile")}
 }));
 $("#profileHomeButton").addEventListener("click",goHome);
+$("#insightPracticeButton").addEventListener("click",()=>startPractice($("#insightPracticeButton").dataset.skill||"Mixed"));
 const dayNames=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],dayWords=["Reset","Momentum","Spark","Clarity","Rhythm","Focus","Challenge"];
 $("#dailyTitle").textContent=`${dayNames[new Date().getDay()]} ${dayWords[new Date().getDay()]}`;
 const storedBest=Number(localStorage.getItem("iqgames-best")||842);$("#homeBestScore").textContent=storedBest;refreshProgressUI();
