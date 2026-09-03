@@ -64,7 +64,7 @@
           <div class="mini-avatars" aria-hidden="true">
             <span>◆</span><span>●</span><span>▲</span>
           </div>
-          <span class="community-copy">12,481 minds played today</span>
+          <span class="community-copy" id="dailyStatusText">Fresh challenge every day</span>
           <span class="arrow-button" aria-hidden="true">→</span>
         </div>
       </button>
@@ -208,6 +208,38 @@
         <button class="primary-button" id="shareButton">Share my score <span>↗</span></button>
         <button class="secondary-button" id="homeButton">Back home</button>
       </div>
+    </section>
+
+
+    <section class="screen" id="profileScreen" data-screen="profile">
+      <div class="profile-hero">
+        <span class="eyebrow"><span></span> Your progress</span>
+        <div class="level-orb"><small>LEVEL</small><strong id="profileLevel">1</strong></div>
+        <h2>Keep your mind moving.</h2>
+        <p>A simple record of your puzzle practice — no inflated IQ claims.</p>
+        <div class="xp-track"><span id="profileXpBar"></span></div>
+        <div class="xp-copy"><span id="profileXpText">0 XP</span><span id="profileNextText">500 to next level</span></div>
+      </div>
+
+      <div class="profile-stats">
+        <article><span class="profile-stat-icon">✦</span><strong id="profileBest">842</strong><small>Best score</small></article>
+        <article><span class="profile-stat-icon mint">🔥</span><strong id="profileStreak">0</strong><small>Day streak</small></article>
+        <article><span class="profile-stat-icon blue">◎</span><strong id="profileAccuracy">—</strong><small>Accuracy</small></article>
+        <article><span class="profile-stat-icon peach">↗</span><strong id="profileRuns">0</strong><small>Runs played</small></article>
+      </div>
+
+      <section class="profile-section">
+        <div class="section-heading compact">
+          <div><span class="card-kicker muted">MILESTONES</span><h3>Your collection</h3></div>
+        </div>
+        <div class="badge-grid">
+          <article class="badge-card" id="badgeFirst"><span>◇</span><div><strong>First Spark</strong><small>Complete your first run</small></div></article>
+          <article class="badge-card" id="badgeSharp"><span>✦</span><div><strong>Sharp Mind</strong><small>Score 80%+ in a run</small></div></article>
+          <article class="badge-card" id="badgeStreak"><span>🔥</span><div><strong>On a Roll</strong><small>Reach a 3-day streak</small></div></article>
+        </div>
+      </section>
+
+      <button class="secondary-button profile-home-button" id="profileHomeButton">Back to today</button>
     </section>
 
     <nav class="bottom-nav" id="bottomNav" aria-label="Main navigation">
