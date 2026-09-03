@@ -183,7 +183,7 @@ function showScreen(name){
   Object.values(screens).forEach(screen=>screen.classList.remove("is-active"));
   screens[name].classList.add("is-active");
   $("#bottomNav").style.display=(name==="home"||name==="practice"||name==="profile")?"flex":"none";
-  $(".nav-item").forEach(item=>item.classList.toggle("active",item.dataset.nav===name));
+  $$(".nav-item").forEach(item=>item.classList.toggle("active",item.dataset.nav===name));
   window.scrollTo({top:0,behavior:"smooth"});
 }
 function shapeMarkup(item){
@@ -286,7 +286,7 @@ function setInteractiveMode(active,label=""){
 function setupOneMove(p){
   setInteractiveMode(true,"TAP A SOURCE, THEN A DESTINATION");
   let source=null;
-  const towers=$$(".gem-tower");
+  const towers=$$$(".gem-tower");
   towers.forEach(tower=>{
     tower.addEventListener("click",()=>{
       if(state.answered)return;
@@ -407,13 +407,13 @@ function setupFold(p){
 
 function setupPath(p){
   setInteractiveMode(true,"TAP THE PATH THAT REACHES THE STAR");
-  $(".path-route").forEach(route=>{
+  $$(".path-route").forEach(route=>{
     const activate=()=>{
       if(state.answered)return;
       const index=Number(route.dataset.route);
       route.classList.add("route-chosen");
       chooseAnswer(index);
-      $(".path-route").forEach((r,i)=>{
+      $$(".path-route").forEach((r,i)=>{
         if(i===p.correct)r.classList.add("route-correct");
         else if(i===index && i!==p.correct)r.classList.add("route-wrong");
       });
@@ -498,7 +498,7 @@ function chooseAnswer(index){
   if(index>=0&&buttons[index])buttons[index].classList.add(isCorrect?"correct":"wrong");
   if(!isCorrect&&buttons[p.correct])buttons[p.correct].classList.add("correct");
   if(p.type==="onemove"){
-    $(".gem-tower").forEach(t=>{
+    $$(".gem-tower").forEach(t=>{
       const model=p.towers.find(x=>x.label===t.dataset.tower);
       if(model && model.height===3)t.classList.add("tower-balanced");
     });
@@ -744,9 +744,9 @@ async function shareScore(){
 $("#startRunButton").addEventListener("click",startRun);$("#nextButton").addEventListener("click",nextPuzzle);
 $("#exitGameButton").addEventListener("click",goHome);$("#homeButton").addEventListener("click",goHome);$("#brandButton").addEventListener("click",goHome);$("#shareButton").addEventListener("click",shareScore);
 $("#practiceButton").addEventListener("click",()=>showScreen("practice"));
-$("[data-practice]").forEach(button=>button.addEventListener("click",()=>startPractice(button.dataset.practice)));
+$$("[data-practice]").forEach(button=>button.addEventListener("click",()=>startPractice(button.dataset.practice)));
 $$(".skill-card").forEach(card=>card.addEventListener("click",()=>startPractice(card.dataset.skill)));
-$(".nav-item").forEach(item=>item.addEventListener("click",()=>{
+$$(".nav-item").forEach(item=>item.addEventListener("click",()=>{
   if(item.dataset.nav==="home")goHome();
   else if(item.dataset.nav==="practice")showScreen("practice");
   else if(item.dataset.nav==="profile"){refreshProgressUI();showScreen("profile")}
