@@ -271,7 +271,7 @@ function setInteractiveMode(active,label=""){
 function setupOneMove(p){
   setInteractiveMode(true,"TAP A SOURCE, THEN A DESTINATION");
   let source=null;
-  const towers=$(".gem-tower");
+  const towers=$$(".gem-tower");
   towers.forEach(tower=>{
     tower.addEventListener("click",()=>{
       if(state.answered)return;
