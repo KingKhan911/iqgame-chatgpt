@@ -159,17 +159,18 @@ function makePracticeRun(skill="Mixed"){
   if(skill==="Focus")return [makeOdd(rand),makePath(rand),makeMemory(rand),makePath(rand)];
   if(skill==="Spatial")return [makeRotation(rand),makeFold(rand),makeShadow(rand),makeRotation(rand)];
   if(skill==="Logic")return [makeBalance(rand),makeEquation(rand),makeOneMove(rand),makeMatrix(rand)];
+  if(skill==="Strategy")return [makeOneMove(rand),makeBalance(rand),makePath(rand),makeOneMove(rand)];
   return [makeOneMove(rand),makeFold(rand),makeShadow(rand),makeBalance(rand),makePath(rand)];
 }
 
 const state={index:0,correct:0,answered:false,timeLeft:20,timer:null,memoryTimeout:null,responseTimes:[],categoryResults:{},questionStartedAt:0,run:[],mode:"daily",skill:""};
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-const screens={home:$("#homeScreen"),game:$("#gameScreen"),result:$("#resultScreen"),profile:$("#profileScreen")};
+const screens={home:$("#homeScreen"),game:$("#gameScreen"),result:$("#resultScreen"),practice:$("#practiceScreen"),profile:$("#profileScreen")};
 
 function showScreen(name){
   Object.values(screens).forEach(screen=>screen.classList.remove("is-active"));
   screens[name].classList.add("is-active");
-  $("#bottomNav").style.display=(name==="home"||name==="profile")?"flex":"none";
+  $("#bottomNav").style.display=(name==="home"||name==="practice"||name==="profile")?"flex":"none";
   $(".nav-item").forEach(item=>item.classList.toggle("active",item.dataset.nav===name));
   window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -563,11 +564,12 @@ async function shareScore(){
 }
 $("#startRunButton").addEventListener("click",startRun);$("#nextButton").addEventListener("click",nextPuzzle);
 $("#exitGameButton").addEventListener("click",goHome);$("#homeButton").addEventListener("click",goHome);$("#brandButton").addEventListener("click",goHome);$("#shareButton").addEventListener("click",shareScore);
-$("#practiceButton").addEventListener("click",()=>startPractice("Mixed"));
+$("#practiceButton").addEventListener("click",()=>showScreen("practice"));
+$("[data-practice]").forEach(button=>button.addEventListener("click",()=>startPractice(button.dataset.practice)));
 $$(".skill-card").forEach(card=>card.addEventListener("click",()=>startPractice(card.dataset.skill)));
 $(".nav-item").forEach(item=>item.addEventListener("click",()=>{
   if(item.dataset.nav==="home")goHome();
-  else if(item.dataset.nav==="practice")startPractice("Mixed");
+  else if(item.dataset.nav==="practice")showScreen("practice");
   else if(item.dataset.nav==="profile"){refreshProgressUI();showScreen("profile")}
 }));
 $("#profileHomeButton").addEventListener("click",goHome);
