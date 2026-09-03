@@ -18,7 +18,7 @@ Design principles:
 
 ## Current prototype
 
-The Daily IQ Run now demonstrates multiple puzzle grammars rather than one repeated template:
+The Daily IQ Run now demonstrates multiple puzzle grammars rather than one repeated template, including tactile-looking visual puzzles:
 
 1. Pattern sequence
 2. 3×3 logic matrix
