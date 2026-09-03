@@ -485,6 +485,20 @@ function finishRun(){
   const focus=Math.min(99,Math.round(55+rate(["FOCUS","MEMORY"])*41));
   const speed=Math.min(99,Math.max(45,Math.round(98-avgTime*2.25)));
   [["pattern",pattern],["logic",logic],["focus",focus],["speed",speed]].forEach(([name,value])=>$("#"+name+"Score").textContent=value);
+
+  const skills=[
+    {name:"Pattern",value:pattern,practice:"Pattern"},
+    {name:"Logic",value:logic,practice:"Logic"},
+    {name:"Focus",value:focus,practice:"Focus"},
+    {name:"Speed",value:speed,practice:"Focus"}
+  ];
+  const strongest=[...skills].sort((a,b)=>b.value-a.value)[0];
+  const growth=[...skills].sort((a,b)=>a.value-b.value)[0];
+  $("#insightTitle").textContent=`${strongest.name} was your strongest area.`;
+  $("#insightText").textContent=growth.name===strongest.name
+    ?"Balanced run — try a mixed sprint to keep pushing."
+    :`Want to improve next? Train ${growth.practice.toLowerCase()} for a few rounds.`;
+
   if(state.mode==="daily"){
     const previousBest=Number(localStorage.getItem("iqgames-best")||0),newBest=Math.max(score,previousBest);
     localStorage.setItem("iqgames-best",String(newBest));$("#homeBestScore").textContent=newBest||"—";
