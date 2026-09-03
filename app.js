@@ -557,10 +557,84 @@ function refreshProgressUI(){
 
 function goHome(){clearInterval(state.timer);clearTimeout(state.memoryTimeout);showScreen("home");$("#feedbackCard").classList.remove("show")}
 function showToast(message){const toast=$("#toast");toast.textContent=message;toast.classList.add("show");setTimeout(()=>toast.classList.remove("show"),1800)}
+function roundRect(ctx,x,y,w,h,r){
+  const radius=Math.min(r,w/2,h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+radius,y);
+  ctx.arcTo(x+w,y,x+w,y+h,radius);
+  ctx.arcTo(x+w,y+h,x,y+h,radius);
+  ctx.arcTo(x,y+h,x,y,radius);
+  ctx.arcTo(x,y,x+w,y,radius);
+  ctx.closePath();
+}
+function shareCardBlob(){
+  return new Promise(resolve=>{
+    const canvas=document.createElement("canvas");
+    canvas.width=1080;canvas.height=1350;
+    const ctx=canvas.getContext("2d");
+    if(!ctx){resolve(null);return}
+
+    const score=$("#finalScore").textContent;
+    const rank=$("#rankText").textContent;
+    const correct=$("#correctText").textContent;
+
+    ctx.fillStyle="#F7F5EF";ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    const glow=ctx.createRadialGradient(860,120,20,860,120,430);
+    glow.addColorStop(0,"rgba(174,229,212,.55)");glow.addColorStop(1,"rgba(174,229,212,0)");
+    ctx.fillStyle=glow;ctx.fillRect(430,-180,650,650);
+    const glow2=ctx.createRadialGradient(100,1170,20,100,1170,420);
+    glow2.addColorStop(0,"rgba(255,217,119,.48)");glow2.addColorStop(1,"rgba(255,217,119,0)");
+    ctx.fillStyle=glow2;ctx.fillRect(-250,800,700,550);
+
+    ctx.fillStyle="#252533";ctx.font="800 54px Manrope, sans-serif";ctx.fillText("IQ Games",90,115);
+    ctx.fillStyle="#7B7B8D";ctx.font="700 24px DM Sans, sans-serif";ctx.fillText("DAILY BRAIN CHALLENGE",90,158);
+
+    ctx.fillStyle="rgba(255,255,255,.88)";roundRect(ctx,70,240,940,800,68);ctx.fill();
+    ctx.strokeStyle="rgba(70,65,90,.06)";ctx.lineWidth=2;ctx.stroke();
+
+    ctx.save();ctx.translate(540,520);ctx.rotate(4*Math.PI/180);
+    const grad=ctx.createLinearGradient(-170,-170,170,170);grad.addColorStop(0,"#8D7CF7");grad.addColorStop(1,"#6251DF");
+    ctx.fillStyle=grad;roundRect(ctx,-180,-180,360,360,108);ctx.fill();
+    ctx.fillStyle="rgba(255,255,255,.78)";ctx.font="800 22px DM Sans, sans-serif";ctx.textAlign="center";ctx.fillText("BRAIN SCORE",0,-62);
+    ctx.fillStyle="#FFFFFF";ctx.font="800 118px Manrope, sans-serif";ctx.fillText(score,0,55);
+    ctx.restore();
+
+    ctx.textAlign="center";ctx.fillStyle="#252533";ctx.font="800 58px Manrope, sans-serif";ctx.fillText(rank,540,800);
+    ctx.fillStyle="#7B7B8D";ctx.font="700 27px DM Sans, sans-serif";ctx.fillText(correct,540,850);
+
+    const pills=[["✦","Think"],["◇","Solve"],["◎","Repeat"]];
+    pills.forEach((p,i)=>{
+      const x=210+i*330;
+      ctx.fillStyle=i===0?"#FFF0CD":i===1?"#E4F6EF":"#ECE8FF";
+      roundRect(ctx,x-112,900,224,72,36);ctx.fill();
+      ctx.fillStyle="#55505F";ctx.font="800 23px DM Sans, sans-serif";ctx.fillText(p[0]+"  "+p[1],x,945);
+    });
+
+    ctx.fillStyle="#8A8795";ctx.font="700 24px DM Sans, sans-serif";
+    ctx.fillText("How sharp is your mind today?",540,1135);
+    ctx.fillStyle="#6D5CE7";ctx.font="800 30px Manrope, sans-serif";ctx.fillText("IQ GAMES",540,1215);
+
+    canvas.toBlob(blob=>resolve(blob),"image/png",.96);
+  });
+}
 async function shareScore(){
-  const score=$("#finalScore").textContent,text=`I scored ${score} on IQ Games. Can you beat me?`;
-  if(navigator.share){try{await navigator.share({title:"IQ Games",text})}catch(_){}}
-  else if(navigator.clipboard){await navigator.clipboard.writeText(text);showToast("Score copied to clipboard")}else showToast(text);
+  const score=$("#finalScore").textContent,rank=$("#rankText").textContent;
+  const text=`I scored ${score} (${rank}) on IQ Games. Can you beat me?`;
+  try{
+    const blob=await shareCardBlob();
+    if(blob && typeof File!=="undefined"){
+      const file=new File([blob],"iq-games-score.png",{type:"image/png"});
+      if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){
+        await navigator.share({title:"IQ Games",text,files:[file]});return;
+      }
+    }
+    if(navigator.share){await navigator.share({title:"IQ Games",text});return}
+    if(navigator.clipboard){await navigator.clipboard.writeText(text);showToast("Score copied to clipboard");return}
+    showToast(text);
+  }catch(error){
+    if(error?.name!=="AbortError")showToast("Sharing wasn’t available");
+  }
 }
 $("#startRunButton").addEventListener("click",startRun);$("#nextButton").addEventListener("click",nextPuzzle);
 $("#exitGameButton").addEventListener("click",goHome);$("#homeButton").addEventListener("click",goHome);$("#brandButton").addEventListener("click",goHome);$("#shareButton").addEventListener("click",shareScore);
