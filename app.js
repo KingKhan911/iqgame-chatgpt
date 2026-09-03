@@ -239,9 +239,9 @@ function renderBoard(p){
   }
   if(p.type==="shadow"){
     const target=H(p.target);
-    board.innerHTML=`<div class="shadow-board"><div class="light-source">☀</div><div class="object-cluster">
+    board.innerHTML=`<div class="shadow-board"><div class="light-source">☀</div><div class="light-ray ray-a"></div><div class="light-ray ray-b"></div><div class="object-cluster">
       <span class="float-shape fs-a"></span><span class="float-shape fs-b"></span><span class="float-shape fs-c"></span><span class="float-shape fs-d"></span>
-    </div><div class="shadow-floor">${shapeMarkup(target)}</div></div>`;return;
+    </div><div class="shadow-floor"><span class="soft-cast"></span></div></div>`;return;
   }
   if(p.type==="path"){
     board.innerHTML=pathSvg(p.winner);return;
@@ -268,6 +268,7 @@ function renderPuzzle(){
   $("#questionCounter").textContent=`${state.index+1} of ${state.run.length}`;$("#gameCategory").textContent=p.category;$("#stageChip").textContent=p.category;
   $("#modePrompt").innerHTML=`<span></span> ${p.prompt}`;$("#questionTitle").textContent=p.title;$("#questionHint").textContent=p.hint;
   $("#progressBar").style.width=`${((state.index+1)/state.run.length)*100}%`;$("#feedbackCard").classList.remove("show","bad");$("#memoryCurtain").classList.remove("show");
+  $("#puzzleStage").dataset.type=p.type;$("#puzzleStage").classList.remove("stage-correct","stage-wrong");
   $("#answerLabel").textContent=p.type==="memory"?"MEMORIZE FIRST":p.type==="onemove"?"CHOOSE THE MOVE":"CHOOSE YOUR ANSWER";
   renderBoard(p);renderAnswers(p);
   if(p.type==="memory"){
@@ -287,8 +288,8 @@ function chooseAnswer(index){
   if(!isCorrect&&buttons[p.correct])buttons[p.correct].classList.add("correct");
   const seconds=Math.max(0,Math.min(20,(Date.now()-state.questionStartedAt)/1000));state.responseTimes.push(seconds);
   if(!state.categoryResults[p.category])state.categoryResults[p.category]={correct:0,total:0};state.categoryResults[p.category].total+=1;
-  if(isCorrect){state.correct+=1;state.categoryResults[p.category].correct+=1;$("#feedbackTitle").textContent="Exactly right";$("#feedbackText").textContent=p.explanation;$("#feedbackIcon").textContent="✓"}
-  else{$("#feedbackCard").classList.add("bad");$("#feedbackTitle").textContent=index<0?"Time’s up":"Good try";$("#feedbackText").textContent=p.explanation;$("#feedbackIcon").textContent="↗"}
+  if(isCorrect){state.correct+=1;state.categoryResults[p.category].correct+=1;$("#puzzleStage").classList.add("stage-correct");$("#feedbackTitle").textContent="Exactly right";$("#feedbackText").textContent=p.explanation;$("#feedbackIcon").textContent="✓"}
+  else{$("#puzzleStage").classList.add("stage-wrong");$("#feedbackCard").classList.add("bad");$("#feedbackTitle").textContent=index<0?"Time’s up":"Good try";$("#feedbackText").textContent=p.explanation;$("#feedbackIcon").textContent="↗"}
   $("#nextButton").innerHTML=state.index===state.run.length-1?'See score <span>→</span>':'Next <span>→</span>';setTimeout(()=>$("#feedbackCard").classList.add("show"),120);
 }
 function nextPuzzle(){if(!state.answered)return;if(state.index<state.run.length-1){state.index+=1;renderPuzzle()}else finishRun()}
