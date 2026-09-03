@@ -340,3 +340,53 @@ button{font:inherit;color:inherit} button:focus-visible{outline:3px solid rgba(1
 }
 .path-route.route-wrong .path-visible{stroke-dasharray:8 7}
 @keyframes pathPulse{0%{stroke-width:8}45%{stroke-width:14}100%{stroke-width:12}}
+
+
+/* Flow transitions */
+#puzzleStage.puzzle-enter{animation:puzzleEnter .5s cubic-bezier(.18,.85,.25,1)}
+#puzzleStage.puzzle-leaving{animation:puzzleLeave .22s ease forwards}
+@keyframes puzzleEnter{
+  0%{opacity:.15;transform:translateY(14px) scale(.975);filter:blur(2px)}
+  65%{opacity:1;transform:translateY(-2px) scale(1.005);filter:blur(0)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes puzzleLeave{
+  to{opacity:0;transform:translateY(-8px) scale(.985)}
+}
+.success-burst{position:absolute;z-index:8;left:50%;top:50%;width:1px;height:1px;pointer-events:none}
+.success-burst i{
+  --angle:calc(var(--i) * 45deg);
+  position:absolute;width:8px;height:8px;border-radius:3px;background:var(--violet);
+  animation:successParticle .75s cubic-bezier(.15,.7,.2,1) forwards
+}
+.success-burst i:nth-child(2n){background:var(--yellow);border-radius:50%}
+.success-burst i:nth-child(3n){background:var(--mint)}
+@keyframes successParticle{
+  0%{opacity:0;transform:rotate(var(--angle)) translateX(15px) scale(.4)}
+  20%{opacity:1}
+  100%{opacity:0;transform:rotate(var(--angle)) translateX(112px) scale(1)}
+}
+.stage-wrong{animation:gentleMiss .28s ease}
+@keyframes gentleMiss{0%,100%{transform:translateX(0)}35%{transform:translateX(-3px)}70%{transform:translateX(3px)}}
+.result-reveal .score-core{animation:scoreReveal .7s cubic-bezier(.16,.85,.2,1)}
+.result-reveal .rank-banner{animation:resultRise .55s .15s both}
+.result-reveal .ability-card{animation:resultRise .55s .25s both}
+.result-reveal .insight-card{animation:resultRise .55s .35s both}
+.result-reveal .result-actions{animation:resultRise .55s .43s both}
+@keyframes scoreReveal{
+  0%{opacity:0;transform:rotate(4deg) scale(.72)}
+  60%{opacity:1;transform:rotate(1deg) scale(1.035)}
+  100%{transform:rotate(4deg) scale(1)}
+}
+@keyframes resultRise{
+  from{opacity:0;transform:translateY(12px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.feedback-card.show{animation:feedbackSettle .38s cubic-bezier(.18,.86,.2,1)}
+@keyframes feedbackSettle{
+  0%{opacity:.4}
+  100%{opacity:1}
+}
+@media(prefers-reduced-motion:reduce){
+  .success-burst{display:none}
+}
