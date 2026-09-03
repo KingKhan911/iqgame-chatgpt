@@ -70,3 +70,16 @@ The prototype intentionally avoids simulated social proof or fake percentile ran
 ## Interaction status
 
 Direct manipulation is now implemented for One Move and Path. Fold uses a staged tap-to-fold/tap-to-punch interaction before revealing its answer patterns. Balance supports tap placement and desktop drag-and-drop into the target pan.
+
+
+## Current polish pass
+
+The prototype now includes:
+- Refined flagship interactions for One Move, Fold, Balance, and Path
+- Puzzle entrance/exit animation, restrained success feedback, and animated result reveal
+- A clearer Daily Run home hierarchy with session length and skill-mix preview
+- A deliberate Warm-up → Steady → Stretch → Final difficulty curve with puzzle-specific time limits
+- Once-per-day daily crystal reward, XP feedback, and seven-day streak trail
+- A dedicated App Store visual board at `app-store-preview.html`
+- A light-first icon direction at `assets/app-icon.svg`
+- Screenshot capture helpers via `?preview=home|onemove|fold|balance|path`
