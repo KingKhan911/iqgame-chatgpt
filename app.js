@@ -300,8 +300,8 @@ function setupOneMove(p){
       destinationEl.querySelector(".tower-count").textContent=destinationTower.height;
       towers.forEach(x=>x.classList.remove("selected-source"));
 
-      const moveText=`${source} → ${label}`;
-      const answerIndex=p.answers.findIndex(a=>a.text===moveText);
+      const isCorrectMove=source===p.source && label===p.destination;
+      const answerIndex=isCorrectMove?p.correct:p.answers.findIndex((_,i)=>i!==p.correct);
       setTimeout(()=>chooseAnswer(answerIndex),320);
     });
   });
