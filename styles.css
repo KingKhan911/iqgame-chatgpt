@@ -216,3 +216,27 @@ button{font:inherit;color:inherit} button:focus-visible{outline:3px solid rgba(1
   .paper-stage{width:168px;height:168px}
   .balance-piece{height:54px}
 }
+
+
+/* Progress / profile */
+.profile-hero{padding:38px 4px 22px;position:relative}
+.profile-hero h2{font:800 34px/1.05 "Manrope";letter-spacing:-.045em;margin:17px 0 8px;max-width:330px}
+.profile-hero p{color:var(--muted);font-size:13px;line-height:1.55;max-width:330px;margin:0 0 24px}
+.level-orb{
+  position:absolute;right:4px;top:32px;width:78px;height:78px;border-radius:27px;
+  background:linear-gradient(145deg,#8c7af1,#6554dc);color:#fff;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;box-shadow:0 16px 32px rgba(91,72,201,.2);transform:rotate(4deg)
+}
+.level-orb>*{transform:rotate(-4deg)}.level-orb small{font-size:7px;font-weight:900;letter-spacing:.16em;opacity:.75}.level-orb strong{font:800 29px "Manrope"}
+.xp-track{height:8px;background:#e8e4dd;border-radius:999px;overflow:hidden}.xp-track span{height:100%;width:0;display:block;border-radius:999px;background:linear-gradient(90deg,#b5aafa,#6d5ce7);transition:width .55s ease}
+.xp-copy{display:flex;justify-content:space-between;margin-top:7px;color:#8d8998;font-size:9px;font-weight:800}
+.profile-stats{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.profile-stats article{min-height:130px;background:rgba(255,255,255,.78);border:1px solid white;border-radius:23px;padding:16px;box-shadow:var(--soft-shadow);display:flex;flex-direction:column}
+.profile-stat-icon{width:34px;height:34px;border-radius:12px;background:var(--violet-soft);color:var(--violet);display:grid;place-items:center;margin-bottom:17px}.profile-stat-icon.mint{background:#e4f6f0;color:#368b72}.profile-stat-icon.blue{background:#e7f0ff;color:#5579bd}.profile-stat-icon.peach{background:#fff0e6;color:#bb774f}
+.profile-stats strong{font:800 24px/1 "Manrope";letter-spacing:-.04em}.profile-stats small{color:var(--muted);font-size:10px;font-weight:700;margin-top:6px}
+.profile-section{margin-top:30px}.badge-grid{display:grid;gap:10px}
+.badge-card{border-radius:21px;background:rgba(255,255,255,.65);border:1px solid rgba(255,255,255,.9);padding:14px 15px;display:flex;align-items:center;gap:12px;opacity:.48;filter:saturate(.45);transition:.25s ease}
+.badge-card>span{width:42px;height:42px;border-radius:14px;background:#efede8;display:grid;place-items:center;font-size:18px}
+.badge-card div{display:flex;flex-direction:column}.badge-card strong{font-size:12px}.badge-card small{font-size:9px;color:var(--muted);margin-top:3px}
+.badge-card.unlocked{opacity:1;filter:none;background:rgba(255,255,255,.82);box-shadow:var(--soft-shadow)}.badge-card.unlocked>span{background:#fff0cd;color:#a87317}
+.profile-home-button{margin-top:18px}
