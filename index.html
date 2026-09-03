@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="icon" href="assets/app-icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="assets/app-icon.svg?v=20260904-qa2" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css?v=20260904-qa2" />
 </head>
 <body>
   <div class="ambient ambient-one"></div>
@@ -184,7 +184,7 @@
         <div class="score-core">
           <small>BRAIN SCORE</small>
           <strong id="finalScore">0</strong>
-          <span id="scoreDelta">↑ strong run today</span>
+          <span id="scoreDelta">Run summary</span>
         </div>
         <span class="score-star star-a">✦</span>
         <span class="score-star star-b">✦</span>
@@ -193,8 +193,8 @@
 
       <div class="rank-banner">
         <div class="rank-icon">♢</div>
-        <div><small>BRAIN RANK</small><strong id="rankText">Sharp</strong></div>
-        <span id="correctText">6 / 7 correct</span>
+        <div><small>BRAIN RANK</small><strong id="rankText">—</strong></div>
+        <span id="correctText">—</span>
       </div>
 
       <div class="ability-card">
@@ -221,8 +221,8 @@
         <div class="reward-gem" aria-hidden="true"><span>✦</span></div>
         <div class="reward-copy">
           <small id="runRewardKicker">DAILY REWARD</small>
-          <strong id="runRewardTitle">Daily crystal earned</strong>
-          <p id="runRewardText">+100 XP · Come back tomorrow for a fresh run.</p>
+          <strong id="runRewardTitle">Run reward</strong>
+          <p id="runRewardText">Calculated after your run.</p>
           <div class="streak-week" id="streakWeek" aria-label="Seven day streak progress"></div>
         </div>
       </div>
@@ -320,6 +320,6 @@
   </main>
 
   <div class="toast" id="toast"></div>
-  <script src="app.js"></script>
+  <script src="app.js?v=20260904-qa2"></script>
 </body>
 </html>
