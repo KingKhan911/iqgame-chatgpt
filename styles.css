@@ -95,3 +95,17 @@ button{font:inherit;color:inherit} button:focus-visible{outline:3px solid rgba(1
   .move-board{gap:9px;padding-left:0;padding-right:0}.gem-tower{height:168px}.gem{width:34px;height:19px}
   .paper{width:166px;height:166px}.shadow-board{height:215px}.object-cluster{left:35px}.shadow-floor{right:10px;width:130px}
 }
+
+/* Puzzle-specific atmosphere + answer feedback */
+#puzzleStage{transition:background .35s ease,box-shadow .35s ease,transform .2s ease}
+#puzzleStage[data-type="onemove"]{background:linear-gradient(160deg,rgba(255,255,255,.86),rgba(255,246,238,.82))}
+#puzzleStage[data-type="fold"]{background:linear-gradient(160deg,rgba(255,255,255,.86),rgba(240,244,255,.84))}
+#puzzleStage[data-type="shadow"]{background:linear-gradient(160deg,rgba(255,255,255,.87),rgba(255,249,230,.84))}
+#puzzleStage[data-type="balance"]{background:linear-gradient(160deg,rgba(255,255,255,.87),rgba(241,250,246,.84))}
+#puzzleStage[data-type="path"]{background:linear-gradient(160deg,rgba(255,255,255,.88),rgba(247,244,255,.84))}
+#puzzleStage.stage-correct{box-shadow:0 20px 58px rgba(44,167,124,.14);animation:stagePop .36s ease}
+#puzzleStage.stage-wrong{box-shadow:0 20px 58px rgba(233,107,114,.11)}
+@keyframes stagePop{0%{transform:scale(1)}45%{transform:scale(1.012)}100%{transform:scale(1)}}
+.light-ray{position:absolute;right:58px;top:48px;width:118px;height:1px;background:linear-gradient(90deg,rgba(244,197,80,.45),rgba(244,197,80,0));transform-origin:right center;opacity:.65}
+.ray-a{transform:rotate(148deg)}.ray-b{transform:rotate(164deg)}
+.soft-cast{width:92px;height:35px;border-radius:50%;background:radial-gradient(ellipse,rgba(62,58,70,.24),rgba(62,58,70,.04) 68%,transparent 72%);filter:blur(3px);display:block;transform:skewX(12deg)}
