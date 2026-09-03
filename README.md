@@ -33,10 +33,10 @@ The prototype also includes:
 - Twenty-second challenge timer
 - Correct / incorrect explanations
 - Brain Score calculation
-- Pattern, Logic, Focus, and Speed breakdown
+- Pattern, Logic, Focus, and Speed breakdown with a run-specific strongest-skill insight
 - Local best-score persistence
 - Responsive mobile-first layout
-- Native share-sheet support where available
+- Native share-sheet support with a generated branded score-card image where supported
 
 ## Run locally
 
@@ -65,3 +65,8 @@ Then visit `http://localhost:8000`.
 ## Data integrity
 
 The prototype intentionally avoids simulated social proof or fake percentile rankings. Personal stats shown in the UI are derived from local play history. Population ranking can be added later only if backed by real leaderboard data.
+
+
+## Interaction status
+
+Direct manipulation is now implemented for One Move and Path. Fold uses a staged tap-to-fold/tap-to-punch interaction before revealing its answer patterns. Balance supports tap placement and desktop drag-and-drop into the target pan.
