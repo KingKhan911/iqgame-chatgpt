@@ -148,22 +148,34 @@ function makePath(rand){
     answers:["A","B","C","D"].map(x=>T(x,"PATH")),correct:winner,
     explanation:`Path ${["A","B","C","D"][winner]} is the only route that reaches the star.`};
 }
+function tunePuzzle(p,difficulty,timeLimit){
+  return {...p,difficulty,timeLimit};
+}
 function makeDailyRun(key=localDateKey()){
   const rand=mulberry32(seedFromString(key));
-  const middle=shuffleCopy([makeBalance(rand),makeFold(rand),makeShadow(rand),makePath(rand),makeMemory(rand),makeRotation(rand),makeOdd(rand)],rand).slice(0,5);
-  return [makeOneMove(rand),...middle,makeMatrix(rand,true)];
+  const opener=tunePuzzle(makeOneMove(rand),"WARM-UP",24);
+  const easy=tunePuzzle(shuffleCopy([makeOdd(rand),makePath(rand)],rand)[0],"WARM-UP",22);
+  const medium=shuffleCopy([
+    tunePuzzle(makeBalance(rand),"STEADY",22),
+    tunePuzzle(makeMemory(rand),"STEADY",20),
+    tunePuzzle(makeRotation(rand),"STEADY",20)
+  ],rand);
+  const stretch=tunePuzzle(shuffleCopy([makeFold(rand),makeShadow(rand),makeEquation(rand)],rand)[0],"STRETCH",26);
+  const final=tunePuzzle(makeMatrix(rand,true),"FINAL",30);
+  return [opener,easy,...medium,stretch,final];
 }
 function makePracticeRun(skill="Mixed"){
   const rand=Math.random;
-  if(skill==="Pattern")return [makeSequence(rand),makeMatrix(rand),makeSequence(rand),makeMatrix(rand,true)];
-  if(skill==="Focus")return [makeOdd(rand),makePath(rand),makeMemory(rand),makePath(rand)];
-  if(skill==="Spatial")return [makeRotation(rand),makeFold(rand),makeShadow(rand),makeRotation(rand)];
-  if(skill==="Logic")return [makeBalance(rand),makeEquation(rand),makeOneMove(rand),makeMatrix(rand)];
-  if(skill==="Strategy")return [makeOneMove(rand),makeBalance(rand),makePath(rand),makeOneMove(rand)];
-  return [makeOneMove(rand),makeFold(rand),makeShadow(rand),makeBalance(rand),makePath(rand)];
+  const ramp=items=>items.map((p,i)=>tunePuzzle(p,i===0?"WARM-UP":i===items.length-1?"STRETCH":"STEADY",i===0?24:i===items.length-1?26:22));
+  if(skill==="Pattern")return ramp([makeSequence(rand),makeMatrix(rand),makeSequence(rand),makeMatrix(rand,true)]);
+  if(skill==="Focus")return ramp([makeOdd(rand),makePath(rand),makeMemory(rand),makePath(rand)]);
+  if(skill==="Spatial")return ramp([makeRotation(rand),makeFold(rand),makeShadow(rand),makeRotation(rand)]);
+  if(skill==="Logic")return ramp([makeBalance(rand),makeEquation(rand),makeOneMove(rand),makeMatrix(rand)]);
+  if(skill==="Strategy")return ramp([makeOneMove(rand),makeBalance(rand),makePath(rand),makeOneMove(rand)]);
+  return ramp([makeOneMove(rand),makePath(rand),makeBalance(rand),makeFold(rand),makeShadow(rand)]);
 }
 
-const state={index:0,correct:0,answered:false,timeLeft:20,timer:null,memoryTimeout:null,responseTimes:[],categoryResults:{},questionStartedAt:0,run:[],mode:"daily",skill:""};
+const state={index:0,correct:0,answered:false,timeLeft:20,currentLimit:20,timer:null,memoryTimeout:null,responseTimes:[],categoryResults:{},questionStartedAt:0,run:[],mode:"daily",skill:""};
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const screens={home:$("#homeScreen"),game:$("#gameScreen"),result:$("#resultScreen"),practice:$("#practiceScreen"),profile:$("#profileScreen")};
 
@@ -430,7 +442,7 @@ function resetRun(){
 function startRun(){resetRun();state.mode="daily";state.skill="";state.run=makeDailyRun();showScreen("game");renderPuzzle()}
 function startPractice(skill="Mixed"){resetRun();state.mode="practice";state.skill=skill;state.run=makePracticeRun(skill);showScreen("game");renderPuzzle()}
 function startTimer(){
-  clearInterval(state.timer);state.timeLeft=20;state.questionStartedAt=Date.now();$("#timerText").textContent=state.timeLeft;
+  clearInterval(state.timer);state.timeLeft=state.currentLimit||20;state.questionStartedAt=Date.now();$("#timerText").textContent=state.timeLeft;
   state.timer=setInterval(()=>{if(state.answered)return;state.timeLeft-=1;$("#timerText").textContent=Math.max(0,state.timeLeft);if(state.timeLeft<=0){clearInterval(state.timer);chooseAnswer(-1)}},1000);
 }
 function animatePuzzleEntrance(){
@@ -462,7 +474,9 @@ function animateScoreValue(target){
 function renderPuzzle(){
   clearInterval(state.timer);clearTimeout(state.memoryTimeout);state.answered=false;
   const p=state.run[state.index];
-  $("#questionCounter").textContent=`${state.index+1} of ${state.run.length}`;$("#gameCategory").textContent=p.category;$("#stageChip").textContent=p.category;
+  state.currentLimit=p.timeLimit||20;
+  $("#questionCounter").textContent=`${state.index+1} of ${state.run.length}`;$("#gameCategory").textContent=`${p.category} · ${p.difficulty||"STEADY"}`;$("#stageChip").textContent=p.category;
+  $("#puzzleStage").dataset.difficulty=p.difficulty||"STEADY";
   $("#modePrompt").innerHTML=`<span></span> ${p.prompt}`;$("#questionTitle").textContent=p.title;$("#questionHint").textContent=p.hint;
   $("#progressBar").style.width=`${((state.index+1)/state.run.length)*100}%`;$("#feedbackCard").classList.remove("show","bad");$("#memoryCurtain").classList.remove("show");
   $("#puzzleStage").dataset.type=p.type;$("#puzzleStage").classList.remove("stage-correct","stage-wrong");
@@ -489,7 +503,7 @@ function chooseAnswer(index){
       if(model && model.height===3)t.classList.add("tower-balanced");
     });
   }
-  const seconds=Math.max(0,Math.min(20,(Date.now()-state.questionStartedAt)/1000));state.responseTimes.push(seconds);
+  const seconds=Math.max(0,Math.min(state.currentLimit||20,(Date.now()-state.questionStartedAt)/1000));state.responseTimes.push(seconds);
   if(!state.categoryResults[p.category])state.categoryResults[p.category]={correct:0,total:0};state.categoryResults[p.category].total+=1;
   if(isCorrect){state.correct+=1;state.categoryResults[p.category].correct+=1;$("#puzzleStage").classList.add("stage-correct");celebrateStage();$("#feedbackTitle").textContent="Exactly right";$("#feedbackText").textContent=p.explanation;$("#feedbackIcon").textContent="✓"}
   else{$("#puzzleStage").classList.add("stage-wrong");$("#feedbackCard").classList.add("bad");$("#feedbackTitle").textContent=index<0?"Time’s up":"Good try";$("#feedbackText").textContent=p.explanation;$("#feedbackIcon").textContent="↗"}
@@ -507,7 +521,7 @@ function nextPuzzle(){
 function finishRun(){
   clearInterval(state.timer);clearTimeout(state.memoryTimeout);
   const accuracy=state.correct/state.run.length,avgTime=state.responseTimes.length?state.responseTimes.reduce((a,b)=>a+b,0)/state.responseTimes.length:20;
-  const speedBonus=Math.max(0,Math.round((20-avgTime)*4)),score=Math.min(999,Math.round(500+accuracy*350+speedBonus));
+  const speedBonus=Math.max(0,Math.round((22-avgTime)*3.5)),score=Math.min(999,Math.round(500+accuracy*350+speedBonus));
   const rank=score>=900?"Mastermind":score>=825?"Brilliant":score>=750?"Sharp":score>=675?"Focused":"Warming Up";
   $("#finalScore").textContent="0";$("#scoreDelta").textContent=score>=820?"↑ strong run today":score>=700?"solid work today":"room to grow";
   $("#rankText").textContent=rank;$("#correctText").textContent=`${state.correct} / ${state.run.length} correct`;
