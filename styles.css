@@ -240,3 +240,7 @@ button{font:inherit;color:inherit} button:focus-visible{outline:3px solid rgba(1
 .badge-card div{display:flex;flex-direction:column}.badge-card strong{font-size:12px}.badge-card small{font-size:9px;color:var(--muted);margin-top:3px}
 .badge-card.unlocked{opacity:1;filter:none;background:rgba(255,255,255,.82);box-shadow:var(--soft-shadow)}.badge-card.unlocked>span{background:#fff0cd;color:#a87317}
 .profile-home-button{margin-top:18px}
+
+.daily-card.completed{box-shadow:0 18px 52px rgba(44,167,124,.11)}
+.daily-card.completed .run-count{background:#e4f6ef;color:#2e8f70}
+.daily-card.completed .center-gem{box-shadow:0 22px 42px rgba(44,167,124,.16),inset 0 1px 1px rgba(255,255,255,.55)}
