@@ -433,6 +433,32 @@ function startTimer(){
   clearInterval(state.timer);state.timeLeft=20;state.questionStartedAt=Date.now();$("#timerText").textContent=state.timeLeft;
   state.timer=setInterval(()=>{if(state.answered)return;state.timeLeft-=1;$("#timerText").textContent=Math.max(0,state.timeLeft);if(state.timeLeft<=0){clearInterval(state.timer);chooseAnswer(-1)}},1000);
 }
+function animatePuzzleEntrance(){
+  const stage=$("#puzzleStage");
+  stage.classList.remove("puzzle-enter","puzzle-leaving");
+  void stage.offsetWidth;
+  stage.classList.add("puzzle-enter");
+  setTimeout(()=>stage.classList.remove("puzzle-enter"),520);
+}
+function celebrateStage(){
+  const stage=$("#puzzleStage");
+  const burst=document.createElement("div");
+  burst.className="success-burst";
+  burst.innerHTML=Array.from({length:8},(_,i)=>`<i style="--i:${i}"></i>`).join("");
+  stage.appendChild(burst);
+  setTimeout(()=>burst.remove(),850);
+}
+function animateScoreValue(target){
+  const el=$("#finalScore");
+  const start=performance.now(),duration=760;
+  const tick=now=>{
+    const t=Math.min(1,(now-start)/duration);
+    const eased=1-Math.pow(1-t,3);
+    el.textContent=Math.round(target*eased);
+    if(t<1)requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
 function renderPuzzle(){
   clearInterval(state.timer);clearTimeout(state.memoryTimeout);state.answered=false;
   const p=state.run[state.index];
@@ -441,7 +467,7 @@ function renderPuzzle(){
   $("#progressBar").style.width=`${((state.index+1)/state.run.length)*100}%`;$("#feedbackCard").classList.remove("show","bad");$("#memoryCurtain").classList.remove("show");
   $("#puzzleStage").dataset.type=p.type;$("#puzzleStage").classList.remove("stage-correct","stage-wrong");
   $("#answerLabel").textContent=p.type==="memory"?"MEMORIZE FIRST":"CHOOSE YOUR ANSWER";
-  renderBoard(p);renderAnswers(p);setupPuzzleInteraction(p);
+  renderBoard(p);renderAnswers(p);setupPuzzleInteraction(p);animatePuzzleEntrance();
   if(p.type==="memory"){
     $("#answersGrid").classList.add("waiting");$("#timerText").textContent="—";
     state.memoryTimeout=setTimeout(()=>{$("#memoryCurtain").classList.add("show");setTimeout(()=>{
@@ -465,17 +491,25 @@ function chooseAnswer(index){
   }
   const seconds=Math.max(0,Math.min(20,(Date.now()-state.questionStartedAt)/1000));state.responseTimes.push(seconds);
   if(!state.categoryResults[p.category])state.categoryResults[p.category]={correct:0,total:0};state.categoryResults[p.category].total+=1;
-  if(isCorrect){state.correct+=1;state.categoryResults[p.category].correct+=1;$("#puzzleStage").classList.add("stage-correct");$("#feedbackTitle").textContent="Exactly right";$("#feedbackText").textContent=p.explanation;$("#feedbackIcon").textContent="✓"}
+  if(isCorrect){state.correct+=1;state.categoryResults[p.category].correct+=1;$("#puzzleStage").classList.add("stage-correct");celebrateStage();$("#feedbackTitle").textContent="Exactly right";$("#feedbackText").textContent=p.explanation;$("#feedbackIcon").textContent="✓"}
   else{$("#puzzleStage").classList.add("stage-wrong");$("#feedbackCard").classList.add("bad");$("#feedbackTitle").textContent=index<0?"Time’s up":"Good try";$("#feedbackText").textContent=p.explanation;$("#feedbackIcon").textContent="↗"}
   $("#nextButton").innerHTML=state.index===state.run.length-1?'See score <span>→</span>':'Next <span>→</span>';setTimeout(()=>$("#feedbackCard").classList.add("show"),120);
 }
-function nextPuzzle(){if(!state.answered)return;if(state.index<state.run.length-1){state.index+=1;renderPuzzle()}else finishRun()}
+function nextPuzzle(){
+  if(!state.answered)return;
+  if(state.index<state.run.length-1){
+    const stage=$("#puzzleStage");
+    stage.classList.add("puzzle-leaving");
+    $("#feedbackCard").classList.remove("show");
+    setTimeout(()=>{state.index+=1;renderPuzzle()},220);
+  }else finishRun();
+}
 function finishRun(){
   clearInterval(state.timer);clearTimeout(state.memoryTimeout);
   const accuracy=state.correct/state.run.length,avgTime=state.responseTimes.length?state.responseTimes.reduce((a,b)=>a+b,0)/state.responseTimes.length:20;
   const speedBonus=Math.max(0,Math.round((20-avgTime)*4)),score=Math.min(999,Math.round(500+accuracy*350+speedBonus));
   const rank=score>=900?"Mastermind":score>=825?"Brilliant":score>=750?"Sharp":score>=675?"Focused":"Warming Up";
-  $("#finalScore").textContent=score;$("#scoreDelta").textContent=score>=820?"↑ strong run today":score>=700?"solid work today":"room to grow";
+  $("#finalScore").textContent="0";$("#scoreDelta").textContent=score>=820?"↑ strong run today":score>=700?"solid work today":"room to grow";
   $("#rankText").textContent=rank;$("#correctText").textContent=`${state.correct} / ${state.run.length} correct`;
   $("#resultEyebrow").innerHTML=state.mode==="daily"?'<span></span> Daily run complete':'<span></span> Practice complete';
   $("#resultTitle").textContent=state.mode==="daily"?"Beautiful thinking.":"Nice training.";
@@ -507,7 +541,7 @@ function finishRun(){
     localStorage.setItem("iqgames-best",String(newBest));$("#homeBestScore").textContent=newBest||"—";
   }
   saveRunProgress(score,accuracy);
-  showScreen("result");requestAnimationFrame(()=>setTimeout(()=>{$("#patternBar").style.width=pattern+"%";$("#logicBar").style.width=logic+"%";$("#focusBar").style.width=focus+"%";$("#speedBar").style.width=speed+"%"},250));
+  showScreen("result");$("#resultScreen").classList.add("result-reveal");animateScoreValue(score);requestAnimationFrame(()=>setTimeout(()=>{$("#patternBar").style.width=pattern+"%";$("#logicBar").style.width=logic+"%";$("#focusBar").style.width=focus+"%";$("#speedBar").style.width=speed+"%"},250));
 }
 
 function loadProgress(){
