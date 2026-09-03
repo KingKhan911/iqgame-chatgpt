@@ -233,13 +233,22 @@ function renderBoard(p){
   if(p.type==="balance"){
     board.innerHTML=`<div class="balance-board">
       <div class="scale scale-one"><span class="beam"></span><span class="pivot">◆</span><div class="pan left"><span class="mini-shape">${shapeMarkup(S("circle","peach"))}</span><span class="mini-shape">${shapeMarkup(S("circle","peach"))}</span></div><div class="pan right"><span class="mini-shape">${shapeMarkup(S("square","violet"))}</span></div></div>
-      <div class="scale scale-two"><span class="beam"></span><span class="pivot">◆</span><div class="pan left"><span class="mini-shape">${shapeMarkup(S("square","violet"))}</span></div><div class="pan right"><span class="mini-shape">${shapeMarkup(S("circle","peach"))}</span><b class="mystery-weight">?</b></div></div>
+      <div class="scale scale-two interactive-scale"><span class="beam"></span><span class="pivot">◆</span><div class="pan left"><span class="mini-shape">${shapeMarkup(S("square","violet"))}</span></div><div class="pan right balance-dropzone" data-dropzone="balance"><span class="mini-shape">${shapeMarkup(S("circle","peach"))}</span><b class="mystery-weight">?</b></div></div>
+      <div class="balance-tray" aria-label="Choose a shape to balance the scale">${p.answers.map((item,i)=>`<button class="balance-piece" draggable="true" data-answer="${i}" aria-label="Candidate ${i+1}">${shapeMarkup(item)}</button>`).join("")}</div>
     </div>`;return;
   }
   if(p.type==="fold"){
     board.innerHTML=`<div class="fold-board">
-      <div class="paper"><span class="fold-line vertical"></span><span class="fold-line horizontal"></span><span class="punch"></span><span class="fold-arrow arrow-x">→</span><span class="fold-arrow arrow-y">↓</span></div>
-      <div class="fold-steps"><span>1. Fold right</span><span>2. Fold down</span><span>3. Punch</span></div>
+      <button class="paper-stage" id="paperStage" aria-label="Tap to perform the next fold">
+        <span class="paper-sheet paper-base"></span>
+        <span class="paper-sheet paper-fold-x"></span>
+        <span class="paper-sheet paper-fold-y"></span>
+        <span class="fold-line vertical"></span><span class="fold-line horizontal"></span>
+        <span class="punch" id="foldPunch"></span>
+        <span class="fold-arrow arrow-x">→</span><span class="fold-arrow arrow-y">↓</span>
+        <span class="fold-tap">tap to fold</span>
+      </button>
+      <div class="fold-steps"><span class="active">1. Fold right</span><span>2. Fold down</span><span>3. Punch</span></div>
     </div>`;return;
   }
   if(p.type==="shadow"){
@@ -307,6 +316,80 @@ function setupOneMove(p){
   });
 }
 
+function setupBalance(p){
+  setInteractiveMode(true,"DRAG OR TAP A SHAPE ONTO THE ? PAN");
+  const dropzone=$(".balance-dropzone");
+  const pieces=$(".balance-piece");
+
+  const submit=index=>{
+    if(state.answered)return;
+    const chosen=pieces[index];
+    if(!chosen)return;
+    pieces.forEach(piece=>piece.classList.remove("chosen"));
+    chosen.classList.add("chosen");
+    dropzone.classList.add("filled");
+    const mystery=dropzone.querySelector(".mystery-weight");
+    if(mystery){
+      mystery.innerHTML=shapeMarkup(p.answers[index]);
+      mystery.classList.add("placed-weight");
+    }
+    $(".interactive-scale")?.classList.add(index===p.correct?"balanced":"unbalanced");
+    setTimeout(()=>chooseAnswer(index),300);
+  };
+
+  pieces.forEach((piece,index)=>{
+    piece.addEventListener("click",()=>submit(index));
+    piece.addEventListener("dragstart",e=>{
+      e.dataTransfer?.setData("text/plain",String(index));
+      piece.classList.add("dragging");
+    });
+    piece.addEventListener("dragend",()=>piece.classList.remove("dragging"));
+  });
+
+  dropzone.addEventListener("dragover",e=>{e.preventDefault();dropzone.classList.add("drag-over")});
+  dropzone.addEventListener("dragleave",()=>dropzone.classList.remove("drag-over"));
+  dropzone.addEventListener("drop",e=>{
+    e.preventDefault();dropzone.classList.remove("drag-over");
+    const index=Number(e.dataTransfer?.getData("text/plain"));
+    if(Number.isInteger(index))submit(index);
+  });
+}
+
+function setupFold(p){
+  setInteractiveMode(true,"TAP THE PAPER TO FOLD IT");
+  const stage=$("#paperStage");
+  const steps=$(".fold-steps span");
+  let phase=0;
+
+  const setPhase=next=>{
+    phase=next;
+    stage.dataset.phase=String(phase);
+    steps.forEach((step,i)=>step.classList.toggle("active",i===Math.min(phase,2)));
+    if(phase===0){
+      $("#answerLabel").textContent="TAP THE PAPER TO FOLD RIGHT";
+      stage.querySelector(".fold-tap").textContent="tap to fold";
+    }else if(phase===1){
+      $("#answerLabel").textContent="GOOD — TAP AGAIN TO FOLD DOWN";
+      stage.querySelector(".fold-tap").textContent="tap again";
+    }else if(phase===2){
+      $("#answerLabel").textContent="NOW TAP ONCE TO PUNCH";
+      stage.querySelector(".fold-tap").textContent="tap to punch";
+    }else{
+      $("#answerLabel").textContent="NOW CHOOSE THE UNFOLDED PAPER";
+      stage.querySelector(".fold-tap").textContent="done";
+      $("#answersGrid").classList.remove("interaction-hidden");
+      $("#answersGrid").classList.add("fold-answers-reveal");
+      stage.disabled=true;
+    }
+  };
+
+  stage.addEventListener("click",()=>{
+    if(state.answered||phase>=3)return;
+    setPhase(phase+1);
+  });
+  setPhase(0);
+}
+
 function setupPath(p){
   setInteractiveMode(true,"TAP THE PATH THAT REACHES THE STAR");
   $(".path-route").forEach(route=>{
@@ -329,6 +412,8 @@ function setupPuzzleInteraction(p){
   setInteractiveMode(false);
   if(p.type==="onemove")setupOneMove(p);
   if(p.type==="path")setupPath(p);
+  if(p.type==="balance")setupBalance(p);
+  if(p.type==="fold")setupFold(p);
 }
 
 function renderAnswers(p){
