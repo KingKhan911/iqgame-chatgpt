@@ -218,6 +218,7 @@ function pathSvg(winner){
     ${routeGroups}
     <g class="path-star" transform="translate(${starX},${starY})"><path d="M0-14 4-4 15-4 6 3 10 14 0 8-10 14-6 3-15-4-4-4Z" fill="#ffd365"/></g>
     <circle cx="${starX}" cy="${starY}" r="23" fill="none" stroke="#f1d583" stroke-width="2" stroke-dasharray="3 5"/>
+    <text x="${starX}" y="${starY+38}" text-anchor="middle" font-size="8" font-weight="800" fill="#aaa3a0" letter-spacing="1">GOAL</text>
   </svg>`;
 }
 
@@ -230,12 +231,12 @@ function renderBoard(p){
     board.innerHTML=p.board.map((item,i)=>`<div class="odd-card"><b>${i+1}</b>${shapeMarkup(item)}</div>`).join("");return;
   }
   if(p.type==="onemove"){
-    board.innerHTML=`<div class="move-board">${p.towers.map(t=>`<button class="gem-tower" data-tower="${t.label}" aria-label="Tower ${t.label}, ${t.height} gems"><span class="tower-label">${t.label}</span><div class="gem-stack">${Array.from({length:t.height},()=>`<i class="gem tone-${t.tone}"></i>`).join("")}</div><span class="tower-count">${t.height}</span><span class="tower-action">tap</span></button>`).join("")}<div class="move-goal">ONE MOVE <span>→</span> 3 · 3 · 3</div></div>`;return;
+    board.innerHTML=`<div class="move-board">${p.towers.map(t=>`<button class="gem-tower" data-tower="${t.label}" aria-label="Tower ${t.label}, ${t.height} gems"><span class="tower-label">${t.label}</span><div class="gem-stack">${Array.from({length:t.height},()=>`<i class="gem tone-${t.tone}"></i>`).join("")}</div><span class="tower-count">${t.height}</span><span class="tower-action">tap</span><span class="tower-pedestal"></span></button>`).join("")}<div class="move-goal">ONE MOVE <span>→</span> 3 · 3 · 3</div></div>`;return;
   }
   if(p.type==="balance"){
     board.innerHTML=`<div class="balance-board">
       <div class="scale scale-one"><span class="beam"></span><span class="pivot">◆</span><div class="pan left"><span class="mini-shape">${shapeMarkup(S("circle","peach"))}</span><span class="mini-shape">${shapeMarkup(S("circle","peach"))}</span></div><div class="pan right"><span class="mini-shape">${shapeMarkup(S("square","violet"))}</span></div></div>
-      <div class="scale scale-two interactive-scale"><span class="beam"></span><span class="pivot">◆</span><div class="pan left"><span class="mini-shape">${shapeMarkup(S("square","violet"))}</span></div><div class="pan right balance-dropzone" data-dropzone="balance"><span class="mini-shape">${shapeMarkup(S("circle","peach"))}</span><b class="mystery-weight">?</b></div></div>
+      <div class="scale scale-two interactive-scale"><span class="beam"></span><span class="pivot">◆</span><div class="pan left"><span class="mini-shape">${shapeMarkup(S("square","violet"))}</span></div><div class="pan right balance-dropzone" data-dropzone="balance"><span class="drop-halo">DROP</span><span class="mini-shape">${shapeMarkup(S("circle","peach"))}</span><b class="mystery-weight">?</b></div></div>
       <div class="balance-tray" aria-label="Choose a shape to balance the scale">${p.answers.map((item,i)=>`<button class="balance-piece" draggable="true" data-answer="${i}" aria-label="Candidate ${i+1}">${shapeMarkup(item)}</button>`).join("")}</div>
     </div>`;return;
   }
@@ -248,7 +249,7 @@ function renderBoard(p){
         <span class="fold-line vertical"></span><span class="fold-line horizontal"></span>
         <span class="punch" id="foldPunch"></span>
         <span class="fold-arrow arrow-x">→</span><span class="fold-arrow arrow-y">↓</span>
-        <span class="fold-tap">tap to fold</span>
+        <span class="fold-tap">tap paper</span><span class="fold-corner-cue">↙</span>
       </button>
       <div class="fold-steps"><span class="active">1. Fold right</span><span>2. Fold down</span><span>3. Punch</span></div>
     </div>`;return;
