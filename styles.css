@@ -469,3 +469,13 @@ button{font:inherit;color:inherit} button:focus-visible{outline:3px solid rgba(1
 .run-reward-card.practice .reward-gem{background:linear-gradient(145deg,#b9affb,#7a68e5);box-shadow:0 10px 20px rgba(94,76,190,.14)}
 .run-reward-card.practice .reward-gem span{color:white}
 @keyframes rewardReveal{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* Runtime QA fixes */
+.object-cluster-svg{
+  position:absolute;left:38px;top:42px;width:158px;height:158px;overflow:visible;
+  filter:drop-shadow(0 12px 12px rgba(77,67,101,.11))
+}
+.object-cluster-svg circle{stroke:rgba(255,255,255,.65);stroke-width:1.5}
+@media(max-width:390px){
+  .object-cluster-svg{left:24px;width:148px;height:148px}
+}
