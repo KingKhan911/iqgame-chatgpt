@@ -439,3 +439,33 @@ button{font:inherit;color:inherit} button:focus-visible{outline:3px solid rgba(1
 #puzzleStage[data-difficulty="STRETCH"] .stage-chip{background:#fff0df;color:#b16d43}
 #puzzleStage[data-difficulty="FINAL"] .stage-chip{background:#fff0c8;color:#a77312}
 .progress-meta span:last-child{max-width:62%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+
+
+/* Daily completion reward */
+.run-reward-card{
+  margin-top:12px;border-radius:25px;padding:16px;display:flex;gap:13px;align-items:flex-start;
+  background:linear-gradient(145deg,rgba(255,255,255,.92),rgba(255,249,232,.85));
+  border:1px solid rgba(255,255,255,.98);box-shadow:var(--soft-shadow)
+}
+.reward-gem{
+  width:50px;height:50px;flex:0 0 50px;border-radius:17px;display:grid;place-items:center;
+  background:linear-gradient(145deg,#ffe79c,#ffd064);box-shadow:0 10px 20px rgba(186,135,34,.13);
+  transform:rotate(7deg)
+}
+.reward-gem span{transform:rotate(-7deg);color:#9f7016;font-size:21px}
+.reward-copy{display:flex;flex-direction:column;flex:1}
+.reward-copy small{font-size:8px;font-weight:900;letter-spacing:.14em;color:#a39376}
+.reward-copy strong{font:800 14px/1.25 "Manrope";margin-top:5px}
+.reward-copy p{font-size:9px;line-height:1.45;color:var(--muted);margin:4px 0 10px}
+.streak-week{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.streak-week span{
+  aspect-ratio:1;border-radius:8px;background:#eeebe5;color:#aaa5ae;display:grid;place-items:center;
+  font-size:7px;font-weight:900
+}
+.streak-week span.lit{background:#e5f6ef;color:#2f8b6e;animation:streakLight .4s cubic-bezier(.2,.9,.2,1)}
+@keyframes streakLight{from{transform:scale(.7);opacity:.4}to{transform:scale(1);opacity:1}}
+.run-reward-card.bonus{animation:rewardReveal .65s .25s both cubic-bezier(.16,.85,.2,1)}
+.run-reward-card.practice{background:linear-gradient(145deg,rgba(255,255,255,.92),rgba(242,239,255,.84))}
+.run-reward-card.practice .reward-gem{background:linear-gradient(145deg,#b9affb,#7a68e5);box-shadow:0 10px 20px rgba(94,76,190,.14)}
+.run-reward-card.practice .reward-gem span{color:white}
+@keyframes rewardReveal{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
