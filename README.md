@@ -11,30 +11,38 @@ Design principles:
 - Bright, warm, easy-on-the-eyes visual system
 - Premium rather than clinical or childish
 - Strong visual hierarchy and large tap targets
-- Short daily session: seven puzzles
+- Short daily session: seven varied puzzles
 - Gameplay should be attractive enough to become App Store screenshots
 - No claims that the game measures clinical IQ
 - Fast, satisfying feedback with restrained animation
 
-## Prototype
+## Current prototype
 
-Current vertical slice:
+The Daily IQ Run now demonstrates multiple puzzle grammars rather than one repeated template:
 
-1. Home / Daily IQ Run
-2. Seven playable visual pattern questions
-3. Countdown timer and answer feedback
-4. Brain Score calculation
-5. Results / skill breakdown
-6. Local best-score persistence
-7. Mobile-first responsive presentation
+1. Pattern sequence
+2. 3×3 logic matrix
+3. Odd-one-out visual observation
+4. Timed visual memory recall
+5. Spatial rotation
+6. Visual arithmetic / deduction
+7. Final matrix challenge
+
+The prototype also includes:
+
+- Twenty-second challenge timer
+- Correct / incorrect explanations
+- Brain Score calculation
+- Pattern, Logic, Focus, and Speed breakdown
+- Local best-score persistence
+- Responsive mobile-first layout
+- Native share-sheet support where available
 
 ## Run locally
 
 No build tools are required.
 
-Open `index.html` directly, or serve the folder with any lightweight local web server.
-
-For example:
+Open `index.html` directly, or serve the folder with any lightweight local web server:
 
 ```bash
 python3 -m http.server 8000
@@ -42,12 +50,13 @@ python3 -m http.server 8000
 
 Then visit `http://localhost:8000`.
 
-## Near-term product milestones
+## Next product milestones
 
-- Replace placeholder puzzle set with richer puzzle generators
-- Add Memory, Observation, Spatial, Logic, and One Move mechanics
-- Create a proper practice mode
-- Add daily-seeded puzzle runs
-- Refine scoring and progression
-- Add polished sound/haptics when moved to native
-- Design and test App Store icon/screenshots from real gameplay
+- Turn quick-play cards into real practice modes
+- Add procedural level generators rather than fixed demo puzzles
+- Add One Move, Fold, Shadow Match, and deeper Spatial mechanics
+- Add daily-seeded challenge selection
+- Add onboarding and a lightweight progression system
+- Refine scoring from playtest data
+- Create App Store icon and screenshots from real gameplay
+- Add sound and haptics when the product moves to native
