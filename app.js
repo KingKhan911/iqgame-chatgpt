@@ -1,5 +1,7 @@
 const S=(shape,tone="violet",rotation=0)=>({kind:"shape",shape,tone,rotation});
 const T=(text,sub="")=>({kind:"text",text:String(text),sub});
+const D=(spots)=>({kind:"dotpattern",spots});
+const H=(points)=>({kind:"shadow",points});
 const TOKENS=[
   S("circle","peach"),S("square","violet"),S("diamond","yellow"),
   S("ring","mint"),S("triangle","blue"),S("cross","rose")
@@ -42,13 +44,11 @@ function makeMatrix(rand,final=false){
   const [a,b,c,...rest]=pickDistinct(rand,6);
   const pack=answerPack(b,[c,a,...rest].slice(0,3),rand);
   return {type:"matrix",category:final?"FINAL":"LOGIC",prompt:final?"Final challenge":"Find the rule",
-    title:final?"Unlock the last tile":"Complete the matrix",
-    hint:"Every row and column follows the same rule.",
-    board:[a,b,c,b,c,a,c,a,null],...pack,
-    explanation:"Each row uses the same three shapes, shifted one place."};
+    title:final?"Unlock the last tile":"Complete the matrix",hint:"Every row and column follows the same rule.",
+    board:[a,b,c,b,c,a,c,a,null],...pack,explanation:"Each row uses the same three shapes, shifted one place."};
 }
 function makeOdd(rand){
-  const base=[0,90,180,270][Math.floor(rand()*4)], odd=(base+90)%360, oddIndex=Math.floor(rand()*4);
+  const base=[0,90,180,270][Math.floor(rand()*4)],odd=(base+90)%360,oddIndex=Math.floor(rand()*4);
   const tone=["mint","blue","violet","peach"][Math.floor(rand()*4)];
   const board=[0,1,2,3].map((_,i)=>S("arrow",tone,i===oddIndex?odd:base));
   return {type:"odd",category:"FOCUS",prompt:"Spot the difference",title:"Which one is different?",
@@ -62,7 +62,7 @@ function makeMemory(rand){
   const board=Array.from({length:9},()=>safePool[Math.floor(rand()*safePool.length)]);
   board[target]=S("diamond","yellow");
   const choices=new Set([target+1]);
-  while(choices.size<4) choices.add(Math.floor(rand()*9)+1);
+  while(choices.size<4)choices.add(Math.floor(rand()*9)+1);
   const shuffled=shuffleCopy([...choices],rand);
   return {type:"memory",category:"MEMORY",prompt:"Memorize",title:"Remember the board",
     hint:"You have a moment. Where is the yellow diamond?",board,
@@ -76,14 +76,13 @@ function makeRotation(rand){
   const correctRotation=(start+5*90)%360;
   const choices=shuffleCopy([0,90,180,270],rand);
   return {type:"sequence",category:"SPATIAL",prompt:"Rotate it",title:"Which direction is next?",
-    hint:"The arrow turns the same amount each step.",
-    board:[...angles.map(a=>S("arrow",tone,a)),null],
+    hint:"The arrow turns the same amount each step.",board:[...angles.map(a=>S("arrow",tone,a)),null],
     answers:choices.map(a=>S("arrow",tone,a)),correct:choices.indexOf(correctRotation),
     explanation:"The arrow rotates 90° clockwise on every step."};
 }
 function makeEquation(rand){
   const diamond=3+Math.floor(rand()*5);
-  let circle=1+Math.floor(rand()*6); if(circle===diamond) circle=(circle%6)+1;
+  let circle=1+Math.floor(rand()*6);if(circle===diamond)circle=(circle%6)+1;
   const alternatives=shuffleCopy([1,2,3,4,5,6,7,8,9].filter(n=>n!==circle),rand).slice(0,3);
   const choices=shuffleCopy([circle,...alternatives],rand);
   return {type:"equations",category:"LOGIC",prompt:"Decode the values",title:"What is the circle worth?",
@@ -96,21 +95,75 @@ function makeEquation(rand){
     answers:choices.map(n=>T(n)),correct:choices.indexOf(circle),
     explanation:`A diamond is ${diamond}, so the circle must be ${circle}.`};
 }
+function makeOneMove(rand){
+  const labels=["A","B","C"];
+  const towers=shuffleCopy([
+    {label:labels[0],height:2,tone:"peach"},
+    {label:labels[1],height:3,tone:"mint"},
+    {label:labels[2],height:4,tone:"violet"}
+  ],rand);
+  const low=towers.find(t=>t.height===2).label,high=towers.find(t=>t.height===4).label;
+  const correct=`${high} → ${low}`;
+  const distractors=[
+    `${low} → ${high}`,
+    `${towers.find(t=>t.height===3).label} → ${low}`,
+    `${high} → ${towers.find(t=>t.height===3).label}`
+  ];
+  const pack=answerPack(T(correct,"MOVE ONE GEM"),distractors.map(x=>T(x,"MOVE ONE GEM")),rand);
+  return {type:"onemove",category:"STRATEGY",prompt:"One move only",title:"Make the towers equal",
+    hint:"Move exactly one gem from one tower to another.",towers,...pack,
+    explanation:`Move one gem from ${high} to ${low}. All three towers then have 3 gems.`};
+}
+function makeBalance(rand){
+  const pack=answerPack(S("circle","peach"),[S("diamond","yellow"),S("ring","mint"),S("triangle","blue")],rand);
+  return {type:"balance",category:"LOGIC",prompt:"Balance the scales",title:"What belongs on the right?",
+    hint:"The top scale gives you the rule.",...pack,
+    explanation:"Two circles balance one square. So one square balances a circle plus one more circle."};
+}
+function makeFold(rand){
+  const correct=D([0,3,12,15]);
+  const distractors=[D([0,15]),D([0,5,10,15]),D([3,6,9,12])];
+  const pack=answerPack(correct,distractors,rand);
+  return {type:"fold",category:"SPATIAL",prompt:"Fold it in your mind",title:"Where will the holes appear?",
+    hint:"The paper is folded twice, then punched once.",...pack,
+    explanation:"Unfolding mirrors the punch across both folds, creating four corner holes."};
+}
+function makeShadow(rand){
+  const target=[[18,50,20],[45,31,15],[65,53,18],[47,71,14]];
+  const correct=H(target);
+  const distractors=[
+    H([[18,50,20],[45,31,15],[68,49,18],[50,74,14]]),
+    H([[20,33,17],[48,48,20],[72,35,14],[52,70,16]]),
+    H([[18,50,20],[45,31,15],[65,53,18]])
+  ];
+  const pack=answerPack(correct,distractors,rand);
+  return {type:"shadow",category:"SPATIAL",prompt:"See the silhouette",title:"Which shadow matches?",
+    hint:"Ignore color. Match the exact arrangement.",target,...pack,
+    explanation:"The correct shadow preserves all four shapes in the same relative positions."};
+}
+function makePath(rand){
+  const winner=Math.floor(rand()*4);
+  return {type:"path",category:"FOCUS",prompt:"Trace with your eyes",title:"Which path reaches the star?",
+    hint:"Don’t cross the lines. Follow each path from its letter.",winner,
+    answers:["A","B","C","D"].map(x=>T(x,"PATH")),correct:winner,
+    explanation:`Path ${["A","B","C","D"][winner]} is the only route that reaches the star.`};
+}
 function makeDailyRun(key=localDateKey()){
   const rand=mulberry32(seedFromString(key));
-  return [makeSequence(rand),makeMatrix(rand),makeOdd(rand),makeMemory(rand),makeRotation(rand),makeEquation(rand),makeMatrix(rand,true)];
+  const middle=shuffleCopy([makeBalance(rand),makeFold(rand),makeShadow(rand),makePath(rand),makeMemory(rand),makeRotation(rand),makeOdd(rand)],rand).slice(0,5);
+  return [makeOneMove(rand),...middle,makeMatrix(rand,true)];
 }
 function makePracticeRun(skill="Mixed"){
   const rand=Math.random;
-  if(skill==="Pattern") return [makeSequence(rand),makeMatrix(rand),makeSequence(rand),makeMatrix(rand,true)];
-  if(skill==="Focus") return [makeOdd(rand),makeMemory(rand),makeOdd(rand),makeMemory(rand)];
-  if(skill==="Spatial") return [makeRotation(rand),makeRotation(rand),makeSequence(rand,"SPATIAL"),makeRotation(rand)];
-  if(skill==="Logic") return [makeEquation(rand),makeMatrix(rand),makeEquation(rand),makeMatrix(rand)];
-  return [makeSequence(rand),makeOdd(rand),makeMemory(rand),makeEquation(rand)];
+  if(skill==="Pattern")return [makeSequence(rand),makeMatrix(rand),makeSequence(rand),makeMatrix(rand,true)];
+  if(skill==="Focus")return [makeOdd(rand),makePath(rand),makeMemory(rand),makePath(rand)];
+  if(skill==="Spatial")return [makeRotation(rand),makeFold(rand),makeShadow(rand),makeRotation(rand)];
+  if(skill==="Logic")return [makeBalance(rand),makeEquation(rand),makeOneMove(rand),makeMatrix(rand)];
+  return [makeOneMove(rand),makeFold(rand),makeShadow(rand),makeBalance(rand),makePath(rand)];
 }
 
 const state={index:0,correct:0,answered:false,timeLeft:20,timer:null,memoryTimeout:null,responseTimes:[],categoryResults:{},questionStartedAt:0,run:[],mode:"daily",skill:""};
-const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const screens={home:$("#homeScreen"),game:$("#gameScreen"),result:$("#resultScreen")};
 
 function showScreen(name){
@@ -122,10 +175,44 @@ function showScreen(name){
 function shapeMarkup(item){
   if(!item)return '<span aria-hidden="true">?</span>';
   if(item.kind==="text")return `<span class="answer-text">${item.text}${item.sub?`<small class="answer-sub">${item.sub}</small>`:""}</span>`;
+  if(item.kind==="dotpattern"){
+    return `<span class="dot-pattern">${Array.from({length:16},(_,i)=>`<i class="${item.spots.includes(i)?"on":""}"></i>`).join("")}</span>`;
+  }
+  if(item.kind==="shadow"){
+    return `<svg class="shadow-choice" viewBox="0 0 100 100" aria-hidden="true">${item.points.map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}"></circle>`).join("")}</svg>`;
+  }
   return `<span class="shape ${item.shape} tone-${item.tone}" style="--rotation:${item.rotation||0}deg" aria-hidden="true"></span>`;
 }
 function tileMarkup(item,index,numbered=false){
   return `<div class="tile ${!item?"question":""}">${numbered?`<span class="tile-number">${index+1}</span>`:""}${shapeMarkup(item)}</div>`;
+}
+
+function pathSvg(winner){
+  const endings=[
+    {x:278,y:55},{x:278,y:92},{x:278,y:129},{x:278,y:166}
+  ];
+  const colors=["#ffaf82","#84cdb9","#8b78ec","#82b7f1"];
+  const starts=[42,78,114,150];
+  const routes=[
+    [[40,42],[85,42],[85,68],[142,68],[142,45],[205,45]],
+    [[40,78],[105,78],[105,112],[165,112],[165,84],[220,84]],
+    [[40,114],[75,114],[75,150],[145,150],[145,125],[215,125]],
+    [[40,150],[100,150],[100,132],[182,132],[182,166],[230,166]]
+  ];
+  const starX=278,starY=starts[winner];
+  const lines=routes.map((pts,i)=>{
+    const end=i===winner?[starX-16,starY]:endings[(i+1)%4];
+    const all=[...pts,end];
+    const points=all.map(p=>p.join(",")).join(" ");
+    return `<polyline points="${points}" fill="none" stroke="${colors[i]}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`;
+  }).join("");
+  const labels=starts.map((y,i)=>`<g><circle cx="24" cy="${y}" r="13" fill="${colors[i]}"/><text x="24" y="${y+4}" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">${["A","B","C","D"][i]}</text></g>`).join("");
+  return `<svg class="path-map" viewBox="0 0 320 205" aria-hidden="true">
+    <rect x="4" y="5" width="312" height="195" rx="28" fill="#fbfaf7"/>
+    ${lines}${labels}
+    <g transform="translate(${starX},${starY})"><path d="M0-14 4-4 15-4 6 3 10 14 0 8-10 14-6 3-15-4-4-4Z" fill="#ffd365"/></g>
+    <circle cx="${starX}" cy="${starY}" r="23" fill="none" stroke="#f1d583" stroke-width="2" stroke-dasharray="3 5"/>
+  </svg>`;
 }
 function renderBoard(p){
   const board=$("#puzzleBoard");board.className=`puzzle-board ${p.type}`;
@@ -135,22 +222,42 @@ function renderBoard(p){
   if(p.type==="odd"){
     board.innerHTML=p.board.map((item,i)=>`<div class="odd-card"><b>${i+1}</b>${shapeMarkup(item)}</div>`).join("");return;
   }
+  if(p.type==="onemove"){
+    board.innerHTML=`<div class="move-board">${p.towers.map(t=>`<div class="gem-tower"><span class="tower-label">${t.label}</span><div class="gem-stack">${Array.from({length:t.height},()=>`<i class="gem tone-${t.tone}"></i>`).join("")}</div><span class="tower-count">${t.height}</span></div>`).join("")}<div class="move-goal">ONE MOVE <span>→</span> 3 · 3 · 3</div></div>`;return;
+  }
+  if(p.type==="balance"){
+    board.innerHTML=`<div class="balance-board">
+      <div class="scale scale-one"><span class="beam"></span><span class="pivot">◆</span><div class="pan left"><span class="mini-shape">${shapeMarkup(S("circle","peach"))}</span><span class="mini-shape">${shapeMarkup(S("circle","peach"))}</span></div><div class="pan right"><span class="mini-shape">${shapeMarkup(S("square","violet"))}</span></div></div>
+      <div class="scale scale-two"><span class="beam"></span><span class="pivot">◆</span><div class="pan left"><span class="mini-shape">${shapeMarkup(S("square","violet"))}</span></div><div class="pan right"><span class="mini-shape">${shapeMarkup(S("circle","peach"))}</span><b class="mystery-weight">?</b></div></div>
+    </div>`;return;
+  }
+  if(p.type==="fold"){
+    board.innerHTML=`<div class="fold-board">
+      <div class="paper"><span class="fold-line vertical"></span><span class="fold-line horizontal"></span><span class="punch"></span><span class="fold-arrow arrow-x">→</span><span class="fold-arrow arrow-y">↓</span></div>
+      <div class="fold-steps"><span>1. Fold right</span><span>2. Fold down</span><span>3. Punch</span></div>
+    </div>`;return;
+  }
+  if(p.type==="shadow"){
+    const target=H(p.target);
+    board.innerHTML=`<div class="shadow-board"><div class="light-source">☀</div><div class="object-cluster">
+      <span class="float-shape fs-a"></span><span class="float-shape fs-b"></span><span class="float-shape fs-c"></span><span class="float-shape fs-d"></span>
+    </div><div class="shadow-floor">${shapeMarkup(target)}</div></div>`;return;
+  }
+  if(p.type==="path"){
+    board.innerHTML=pathSvg(p.winner);return;
+  }
   board.innerHTML=p.board.map((item,i)=>tileMarkup(item,i,p.type==="memory")).join("");
 }
 function renderAnswers(p){
   const answers=$("#answersGrid");answers.className="answers-grid";
-  answers.innerHTML=p.answers.map((answer,i)=>`<button class="answer-button" data-answer="${i}" aria-label="Answer ${i+1}">${shapeMarkup(answer)}</button>`).join("");
+  answers.innerHTML=p.answers.map((answer,i)=>`<button class="answer-button ${answer.kind==="dotpattern"?"pattern-answer":answer.kind==="shadow"?"shadow-answer":""}" data-answer="${i}" aria-label="Answer ${i+1}">${shapeMarkup(answer)}</button>`).join("");
   $$(".answer-button").forEach(btn=>btn.addEventListener("click",()=>chooseAnswer(Number(btn.dataset.answer))));
 }
 function resetRun(){
   clearInterval(state.timer);clearTimeout(state.memoryTimeout);state.index=0;state.correct=0;state.answered=false;state.responseTimes=[];state.categoryResults={};
 }
-function startRun(){
-  resetRun();state.mode="daily";state.skill="";state.run=makeDailyRun();showScreen("game");renderPuzzle();
-}
-function startPractice(skill="Mixed"){
-  resetRun();state.mode="practice";state.skill=skill;state.run=makePracticeRun(skill);showScreen("game");renderPuzzle();
-}
+function startRun(){resetRun();state.mode="daily";state.skill="";state.run=makeDailyRun();showScreen("game");renderPuzzle()}
+function startPractice(skill="Mixed"){resetRun();state.mode="practice";state.skill=skill;state.run=makePracticeRun(skill);showScreen("game");renderPuzzle()}
 function startTimer(){
   clearInterval(state.timer);state.timeLeft=20;state.questionStartedAt=Date.now();$("#timerText").textContent=state.timeLeft;
   state.timer=setInterval(()=>{if(state.answered)return;state.timeLeft-=1;$("#timerText").textContent=Math.max(0,state.timeLeft);if(state.timeLeft<=0){clearInterval(state.timer);chooseAnswer(-1)}},1000);
@@ -158,24 +265,18 @@ function startTimer(){
 function renderPuzzle(){
   clearInterval(state.timer);clearTimeout(state.memoryTimeout);state.answered=false;
   const p=state.run[state.index];
-  $("#questionCounter").textContent=`${state.index+1} of ${state.run.length}`;
-  $("#gameCategory").textContent=p.category;$("#stageChip").textContent=p.category;
+  $("#questionCounter").textContent=`${state.index+1} of ${state.run.length}`;$("#gameCategory").textContent=p.category;$("#stageChip").textContent=p.category;
   $("#modePrompt").innerHTML=`<span></span> ${p.prompt}`;$("#questionTitle").textContent=p.title;$("#questionHint").textContent=p.hint;
-  $("#progressBar").style.width=`${((state.index+1)/state.run.length)*100}%`;
-  $("#feedbackCard").classList.remove("show","bad");$("#memoryCurtain").classList.remove("show");
-  $("#answerLabel").textContent=p.type==="memory"?"MEMORIZE FIRST":"CHOOSE YOUR ANSWER";
+  $("#progressBar").style.width=`${((state.index+1)/state.run.length)*100}%`;$("#feedbackCard").classList.remove("show","bad");$("#memoryCurtain").classList.remove("show");
+  $("#answerLabel").textContent=p.type==="memory"?"MEMORIZE FIRST":p.type==="onemove"?"CHOOSE THE MOVE":"CHOOSE YOUR ANSWER";
   renderBoard(p);renderAnswers(p);
   if(p.type==="memory"){
     $("#answersGrid").classList.add("waiting");$("#timerText").textContent="—";
-    state.memoryTimeout=setTimeout(()=>{
-      $("#memoryCurtain").classList.add("show");
-      setTimeout(()=>{
-        $("#puzzleBoard").innerHTML=p.board.map((_,i)=>`<div class="tile"><span class="answer-text">${i+1}</span></div>`).join("");
-        $("#memoryCurtain").classList.remove("show");$("#questionTitle").textContent="Where was the diamond?";
-        $("#questionHint").textContent="Choose the position that held the yellow diamond.";$("#answerLabel").textContent="CHOOSE THE POSITION";
-        $("#answersGrid").classList.remove("waiting");startTimer();
-      },420);
-    },p.revealAfter);
+    state.memoryTimeout=setTimeout(()=>{$("#memoryCurtain").classList.add("show");setTimeout(()=>{
+      $("#puzzleBoard").innerHTML=p.board.map((_,i)=>`<div class="tile"><span class="answer-text">${i+1}</span></div>`).join("");
+      $("#memoryCurtain").classList.remove("show");$("#questionTitle").textContent="Where was the diamond?";$("#questionHint").textContent="Choose the position that held the yellow diamond.";
+      $("#answerLabel").textContent="CHOOSE THE POSITION";$("#answersGrid").classList.remove("waiting");startTimer();
+    },420)},p.revealAfter);
   }else startTimer();
 }
 function chooseAnswer(index){
@@ -188,39 +289,31 @@ function chooseAnswer(index){
   if(!state.categoryResults[p.category])state.categoryResults[p.category]={correct:0,total:0};state.categoryResults[p.category].total+=1;
   if(isCorrect){state.correct+=1;state.categoryResults[p.category].correct+=1;$("#feedbackTitle").textContent="Exactly right";$("#feedbackText").textContent=p.explanation;$("#feedbackIcon").textContent="✓"}
   else{$("#feedbackCard").classList.add("bad");$("#feedbackTitle").textContent=index<0?"Time’s up":"Good try";$("#feedbackText").textContent=p.explanation;$("#feedbackIcon").textContent="↗"}
-  $("#nextButton").innerHTML=state.index===state.run.length-1?'See score <span>→</span>':'Next <span>→</span>';
-  setTimeout(()=>$("#feedbackCard").classList.add("show"),120);
+  $("#nextButton").innerHTML=state.index===state.run.length-1?'See score <span>→</span>':'Next <span>→</span>';setTimeout(()=>$("#feedbackCard").classList.add("show"),120);
 }
-function nextPuzzle(){
-  if(!state.answered)return;
-  if(state.index<state.run.length-1){state.index+=1;renderPuzzle()}else finishRun();
-}
+function nextPuzzle(){if(!state.answered)return;if(state.index<state.run.length-1){state.index+=1;renderPuzzle()}else finishRun()}
 function finishRun(){
   clearInterval(state.timer);clearTimeout(state.memoryTimeout);
-  const accuracy=state.correct/state.run.length;
-  const avgTime=state.responseTimes.length?state.responseTimes.reduce((a,b)=>a+b,0)/state.responseTimes.length:20;
-  const speedBonus=Math.max(0,Math.round((20-avgTime)*4));
-  const score=Math.min(999,Math.round(500+accuracy*350+speedBonus));
+  const accuracy=state.correct/state.run.length,avgTime=state.responseTimes.length?state.responseTimes.reduce((a,b)=>a+b,0)/state.responseTimes.length:20;
+  const speedBonus=Math.max(0,Math.round((20-avgTime)*4)),score=Math.min(999,Math.round(500+accuracy*350+speedBonus));
   const percentile=Math.max(2,Math.min(70,Math.round(61-accuracy*52-speedBonus/15)));
   $("#finalScore").textContent=score;$("#scoreDelta").textContent=score>=820?"↑ strong run today":score>=700?"solid work today":"room to grow";
   $("#rankText").textContent=`Top ${percentile}%`;$("#correctText").textContent=`${state.correct} / ${state.run.length} correct`;
   $("#resultEyebrow").innerHTML=state.mode==="daily"?'<span></span> Daily run complete':'<span></span> Practice complete';
   $("#resultTitle").textContent=state.mode==="daily"?"Beautiful thinking.":"Nice training.";
   $("#resultSubtitle").textContent=state.mode==="daily"?"Here’s how your mind performed today.":`${state.skill||"Mixed"} practice is complete.`;
-
   const rate=names=>{let right=0,total=0;names.forEach(name=>{const r=state.categoryResults[name];if(r){right+=r.correct;total+=r.total}});return total?right/total:accuracy};
   const pattern=Math.min(99,Math.round(58+rate(["PATTERN","FINAL"])*39));
-  const logic=Math.min(99,Math.round(56+rate(["LOGIC"])*40));
+  const logic=Math.min(99,Math.round(56+rate(["LOGIC","STRATEGY"])*40));
   const focus=Math.min(99,Math.round(55+rate(["FOCUS","MEMORY"])*41));
   const speed=Math.min(99,Math.max(45,Math.round(98-avgTime*2.25)));
   [["pattern",pattern],["logic",logic],["focus",focus],["speed",speed]].forEach(([name,value])=>$("#"+name+"Score").textContent=value);
-
   if(state.mode==="daily"){
     const previousBest=Number(localStorage.getItem("iqgames-best")||0),newBest=Math.max(score,previousBest);
     localStorage.setItem("iqgames-best",String(newBest));$("#homeBestScore").textContent=newBest||842;
+    localStorage.setItem("iqgames-last-day",localDateKey());
   }
-  showScreen("result");
-  requestAnimationFrame(()=>setTimeout(()=>{ $("#patternBar").style.width=pattern+"%";$("#logicBar").style.width=logic+"%";$("#focusBar").style.width=focus+"%";$("#speedBar").style.width=speed+"%";},250));
+  showScreen("result");requestAnimationFrame(()=>setTimeout(()=>{$("#patternBar").style.width=pattern+"%";$("#logicBar").style.width=logic+"%";$("#focusBar").style.width=focus+"%";$("#speedBar").style.width=speed+"%"},250));
 }
 function goHome(){clearInterval(state.timer);clearTimeout(state.memoryTimeout);showScreen("home");$("#feedbackCard").classList.remove("show")}
 function showToast(message){const toast=$("#toast");toast.textContent=message;toast.classList.add("show");setTimeout(()=>toast.classList.remove("show"),1800)}
@@ -229,14 +322,11 @@ async function shareScore(){
   if(navigator.share){try{await navigator.share({title:"IQ Games",text})}catch(_){}}
   else if(navigator.clipboard){await navigator.clipboard.writeText(text);showToast("Score copied to clipboard")}else showToast(text);
 }
-
 $("#startRunButton").addEventListener("click",startRun);$("#nextButton").addEventListener("click",nextPuzzle);
 $("#exitGameButton").addEventListener("click",goHome);$("#homeButton").addEventListener("click",goHome);$("#brandButton").addEventListener("click",goHome);$("#shareButton").addEventListener("click",shareScore);
 $("#practiceButton").addEventListener("click",()=>startPractice("Mixed"));
 $$(".skill-card").forEach(card=>card.addEventListener("click",()=>startPractice(card.dataset.skill)));
 $$(".nav-item").forEach(item=>item.addEventListener("click",()=>{if(item.dataset.nav==="practice")startPractice("Mixed");else if(item.dataset.nav==="profile")showToast("Profile is the next screen")}));
-
-const dayNames=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-const dayWords=["Reset","Momentum","Spark","Clarity","Rhythm","Focus","Challenge"];
+const dayNames=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],dayWords=["Reset","Momentum","Spark","Clarity","Rhythm","Focus","Challenge"];
 $("#dailyTitle").textContent=`${dayNames[new Date().getDay()]} ${dayWords[new Date().getDay()]}`;
 const storedBest=Number(localStorage.getItem("iqgames-best")||842);$("#homeBestScore").textContent=storedBest;
