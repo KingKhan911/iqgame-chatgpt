@@ -602,7 +602,8 @@ function refreshProgressUI(){
   $("#badgeSharp").classList.toggle("unlocked",p.sharp);
   $("#badgeStreak").classList.toggle("unlocked",p.streak>=3);
   const completed=p.lastDay===localDateKey();
-  $("#dailyStatusText").textContent=completed?"Today’s run complete ✓":"Fresh challenge every day";
+  $("#dailyStatusText").textContent=completed?"Replay it or train a skill":"Fresh challenge every day";
+  $("#dailyCtaText").textContent=completed?"Run complete ✓":"Start today’s run";
   $("#startRunButton").classList.toggle("completed",completed);
 }
 
