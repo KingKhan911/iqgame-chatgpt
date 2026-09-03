@@ -57,9 +57,7 @@
           <div class="orb orb-two"></div>
           <div class="orb orb-three"></div>
           <div class="orb orb-four"></div>
-          <div class="center-gem">
-            <span>IQ</span>
-          </div>
+          <div class="center-gem"><span>IQ</span></div>
         </div>
 
         <div class="daily-card-bottom">
@@ -112,9 +110,9 @@
             <span class="skill-art pattern-art">◇</span>
             <span><strong>Pattern</strong><small>12 levels</small></span>
           </button>
-          <button class="skill-card" data-skill="Logic">
-            <span class="skill-art logic-art">⌁</span>
-            <span><strong>Logic</strong><small>10 levels</small></span>
+          <button class="skill-card" data-skill="Focus">
+            <span class="skill-art focus-art">⌾</span>
+            <span><strong>Focus</strong><small>10 levels</small></span>
           </button>
           <button class="skill-card" data-skill="Spatial">
             <span class="skill-art spatial-art">⬡</span>
@@ -138,16 +136,21 @@
       </div>
 
       <div class="challenge-copy">
-        <span class="eyebrow centered"><span></span> Think carefully</span>
+        <span class="eyebrow centered" id="modePrompt"><span></span> Think carefully</span>
         <h2 id="questionTitle">What comes next?</h2>
         <p id="questionHint">Find the hidden rule in the sequence.</p>
       </div>
 
-      <div class="puzzle-stage">
-        <div class="sequence-grid" id="sequenceGrid"></div>
+      <div class="puzzle-stage" id="puzzleStage">
+        <div class="stage-chip" id="stageChip">PATTERN</div>
+        <div class="puzzle-board" id="puzzleBoard"></div>
+        <div class="memory-curtain" id="memoryCurtain" aria-hidden="true">
+          <span>✦</span>
+          <strong>Now remember it</strong>
+        </div>
       </div>
 
-      <div class="answer-label">CHOOSE YOUR ANSWER</div>
+      <div class="answer-label" id="answerLabel">CHOOSE YOUR ANSWER</div>
       <div class="answers-grid" id="answersGrid"></div>
 
       <div class="feedback-card" id="feedbackCard" role="status">
@@ -173,7 +176,7 @@
         <div class="score-core">
           <small>BRAIN SCORE</small>
           <strong id="finalScore">842</strong>
-          <span id="scoreDelta">↑ +18 today</span>
+          <span id="scoreDelta">↑ strong run today</span>
         </div>
         <span class="score-star star-a">✦</span>
         <span class="score-star star-b">✦</span>
@@ -192,6 +195,9 @@
         </div>
         <div class="ability-row">
           <span>Logic</span><div><i id="logicBar"></i></div><strong id="logicScore">84</strong>
+        </div>
+        <div class="ability-row">
+          <span>Focus</span><div><i id="focusBar"></i></div><strong id="focusScore">86</strong>
         </div>
         <div class="ability-row">
           <span>Speed</span><div><i id="speedBar"></i></div><strong id="speedScore">88</strong>
