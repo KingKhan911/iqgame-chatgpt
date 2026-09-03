@@ -184,9 +184,22 @@ function makePracticeRun(skill="Mixed"){
   return ramp([makeOneMove(rand),makePath(rand),makeBalance(rand),makeFold(rand),makeShadow(rand)]);
 }
 
-const state={index:0,correct:0,answered:false,timeLeft:20,currentLimit:20,timer:null,memoryTimeout:null,responseTimes:[],categoryResults:{},questionStartedAt:0,run:[],mode:"daily",skill:""};
+const state={index:0,correct:0,answered:false,timeLeft:20,currentLimit:20,timer:null,pendingTimeouts:new Set(),responseTimes:[],categoryResults:{},questionStartedAt:0,run:[],mode:"daily",skill:""};
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const screens={home:$("#homeScreen"),game:$("#gameScreen"),result:$("#resultScreen"),practice:$("#practiceScreen"),profile:$("#profileScreen")};
+
+function scheduleGameplay(fn,delay){
+  const id=setTimeout(()=>{
+    state.pendingTimeouts.delete(id);
+    fn();
+  },delay);
+  state.pendingTimeouts.add(id);
+  return id;
+}
+function clearGameplaySchedules(){
+  state.pendingTimeouts.forEach(id=>clearTimeout(id));
+  state.pendingTimeouts.clear();
+}
 
 function showScreen(name){
   Object.values(screens).forEach(screen=>screen.classList.remove("is-active"));
@@ -322,7 +335,7 @@ function setupOneMove(p){
       const movingGem=sourceEl.querySelector(".gem-stack .gem:last-child");
       if(movingGem){
         movingGem.classList.add("gem-lift");
-        setTimeout(()=>{
+        scheduleGameplay(()=>{
           movingGem.remove();
           const newGem=document.createElement("i");
           newGem.className=`gem tone-${sourceTower.tone} gem-drop`;
@@ -335,7 +348,7 @@ function setupOneMove(p){
 
       const isCorrectMove=source===p.source && label===p.destination;
       const answerIndex=isCorrectMove?p.correct:p.answers.findIndex((_,i)=>i!==p.correct);
-      setTimeout(()=>chooseAnswer(answerIndex),320);
+      scheduleGameplay(()=>chooseAnswer(answerIndex),320);
     });
   });
 }
@@ -358,7 +371,7 @@ function setupBalance(p){
       mystery.classList.add("placed-weight");
     }
     $(".interactive-scale")?.classList.add(index===p.correct?"balanced":"unbalanced");
-    setTimeout(()=>chooseAnswer(index),300);
+    scheduleGameplay(()=>chooseAnswer(index),300);
   };
 
   pieces.forEach((piece,index)=>{
@@ -446,7 +459,7 @@ function renderAnswers(p){
   $$(".answer-button").forEach(btn=>btn.addEventListener("click",()=>chooseAnswer(Number(btn.dataset.answer))));
 }
 function resetRun(){
-  clearInterval(state.timer);clearTimeout(state.memoryTimeout);state.index=0;state.correct=0;state.answered=false;state.responseTimes=[];state.categoryResults={};
+  clearInterval(state.timer);clearGameplaySchedules();state.index=0;state.correct=0;state.answered=false;state.responseTimes=[];state.categoryResults={};
 }
 function startRun(){resetRun();state.mode="daily";state.skill="";state.run=makeDailyRun();showScreen("game");renderPuzzle()}
 function startPractice(skill="Mixed"){resetRun();state.mode="practice";state.skill=skill;state.run=makePracticeRun(skill);showScreen("game");renderPuzzle()}
@@ -481,7 +494,7 @@ function animateScoreValue(target){
   requestAnimationFrame(tick);
 }
 function renderPuzzle(){
-  clearInterval(state.timer);clearTimeout(state.memoryTimeout);state.answered=false;
+  clearInterval(state.timer);clearGameplaySchedules();state.answered=false;
   const p=state.run[state.index];
   state.currentLimit=p.timeLimit||20;
   $("#questionCounter").textContent=`${state.index+1} of ${state.run.length}`;$("#gameCategory").textContent=`${p.category} · ${p.difficulty||"STEADY"}`;$("#stageChip").textContent=p.category;
@@ -493,7 +506,7 @@ function renderPuzzle(){
   renderBoard(p);renderAnswers(p);setupPuzzleInteraction(p);animatePuzzleEntrance();
   if(p.type==="memory"){
     $("#answersGrid").classList.add("waiting");$("#timerText").textContent="—";
-    state.memoryTimeout=setTimeout(()=>{$("#memoryCurtain").classList.add("show");setTimeout(()=>{
+    scheduleGameplay(()=>{$("#memoryCurtain").classList.add("show");scheduleGameplay(()=>{
       $("#puzzleBoard").innerHTML=p.board.map((_,i)=>`<div class="tile"><span class="answer-text">${i+1}</span></div>`).join("");
       $("#memoryCurtain").classList.remove("show");$("#questionTitle").textContent="Where was the diamond?";$("#questionHint").textContent="Choose the position that held the yellow diamond.";
       $("#answerLabel").textContent="CHOOSE THE POSITION";$("#answersGrid").classList.remove("waiting");startTimer();
@@ -502,7 +515,7 @@ function renderPuzzle(){
 }
 function chooseAnswer(index){
   if(state.answered||$("#answersGrid").classList.contains("waiting"))return;
-  state.answered=true;clearInterval(state.timer);clearTimeout(state.memoryTimeout);
+  state.answered=true;clearInterval(state.timer);clearGameplaySchedules();
   const p=state.run[state.index],buttons=$$(".answer-button"),isCorrect=index===p.correct;
   if(index>=0&&buttons[index])buttons[index].classList.add(isCorrect?"correct":"wrong");
   if(!isCorrect&&buttons[p.correct])buttons[p.correct].classList.add("correct");
@@ -516,7 +529,7 @@ function chooseAnswer(index){
   if(!state.categoryResults[p.category])state.categoryResults[p.category]={correct:0,total:0};state.categoryResults[p.category].total+=1;
   if(isCorrect){state.correct+=1;state.categoryResults[p.category].correct+=1;$("#puzzleStage").classList.add("stage-correct");celebrateStage();$("#feedbackTitle").textContent="Exactly right";$("#feedbackText").textContent=p.explanation;$("#feedbackIcon").textContent="✓"}
   else{$("#puzzleStage").classList.add("stage-wrong");$("#feedbackCard").classList.add("bad");$("#feedbackTitle").textContent=index<0?"Time’s up":"Good try";$("#feedbackText").textContent=p.explanation;$("#feedbackIcon").textContent="↗"}
-  $("#nextButton").innerHTML=state.index===state.run.length-1?'See score <span>→</span>':'Next <span>→</span>';setTimeout(()=>$("#feedbackCard").classList.add("show"),120);
+  $("#nextButton").innerHTML=state.index===state.run.length-1?'See score <span>→</span>':'Next <span>→</span>';scheduleGameplay(()=>$("#feedbackCard").classList.add("show"),120);
 }
 function nextPuzzle(){
   if(!state.answered)return;
@@ -524,11 +537,11 @@ function nextPuzzle(){
     const stage=$("#puzzleStage");
     stage.classList.add("puzzle-leaving");
     $("#feedbackCard").classList.remove("show");
-    setTimeout(()=>{state.index+=1;renderPuzzle()},220);
+    scheduleGameplay(()=>{state.index+=1;renderPuzzle()},220);
   }else finishRun();
 }
 function finishRun(){
-  clearInterval(state.timer);clearTimeout(state.memoryTimeout);
+  clearInterval(state.timer);clearGameplaySchedules();
   const accuracy=state.correct/state.run.length,avgTime=state.responseTimes.length?state.responseTimes.reduce((a,b)=>a+b,0)/state.responseTimes.length:20;
   const speedBonus=Math.max(0,Math.round((22-avgTime)*3.5)),score=Math.min(999,Math.round(500+accuracy*350+speedBonus));
   const rank=score>=900?"Mastermind":score>=825?"Brilliant":score>=750?"Sharp":score>=675?"Focused":"Warming Up";
@@ -681,7 +694,7 @@ function renderRunReward(reward){
   }
 }
 
-function goHome(){clearInterval(state.timer);clearTimeout(state.memoryTimeout);showScreen("home");$("#feedbackCard").classList.remove("show")}
+function goHome(){clearInterval(state.timer);clearGameplaySchedules();showScreen("home");$("#feedbackCard").classList.remove("show")}
 function showToast(message){const toast=$("#toast");toast.textContent=message;toast.classList.add("show");setTimeout(()=>toast.classList.remove("show"),1800)}
 function roundRect(ctx,x,y,w,h,r){
   const radius=Math.min(r,w/2,h/2);
@@ -813,7 +826,7 @@ function applyCapturePreview(){
   showScreen("game");
   renderPuzzle();
   clearInterval(state.timer);
-  clearTimeout(state.memoryTimeout);
+  clearGameplaySchedules();
   state.timer=null;
   $("#questionCounter").textContent=`${config.position} of 7`;
   $("#progressBar").style.width=`${(config.position/7)*100}%`;
