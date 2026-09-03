@@ -212,7 +212,7 @@ function tileMarkup(item,index,numbered=false){
 
 function pathSvg(winner){
   const endings=[
-    {x:278,y:55},{x:278,y:92},{x:278,y:129},{x:278,y:166}
+    [278,55],[278,92],[278,129],[278,166]
   ];
   const colors=["#ffaf82","#84cdb9","#8b78ec","#82b7f1"];
   const starts=[42,78,114,150];
