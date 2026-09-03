@@ -155,5 +155,5 @@ button{font:inherit;color:inherit} button:focus-visible{outline:3px solid rgba(1
 .path-route.route-chosen .path-visible{stroke-width:12}
 .path-route.route-correct .path-visible{filter:drop-shadow(0 0 7px rgba(44,167,124,.36));stroke-width:12}
 .path-route.route-wrong .path-visible{opacity:.38}
-.path-star{animation:starFloat 2.2s ease-in-out infinite}
-@keyframes starFloat{0%,100%{transform:translate(var(--sx,0),var(--sy,0)) scale(1)}50%{transform:translate(var(--sx,0),var(--sy,0)) scale(1.08)}}
+.path-star{transform-box:fill-box;transform-origin:center;animation:starGlow 2.2s ease-in-out infinite}
+@keyframes starGlow{0%,100%{filter:drop-shadow(0 0 0 rgba(255,211,101,0))}50%{filter:drop-shadow(0 0 6px rgba(255,211,101,.75))}}
