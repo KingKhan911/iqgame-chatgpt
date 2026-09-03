@@ -164,12 +164,13 @@ function makePracticeRun(skill="Mixed"){
 
 const state={index:0,correct:0,answered:false,timeLeft:20,timer:null,memoryTimeout:null,responseTimes:[],categoryResults:{},questionStartedAt:0,run:[],mode:"daily",skill:""};
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-const screens={home:$("#homeScreen"),game:$("#gameScreen"),result:$("#resultScreen")};
+const screens={home:$("#homeScreen"),game:$("#gameScreen"),result:$("#resultScreen"),profile:$("#profileScreen")};
 
 function showScreen(name){
   Object.values(screens).forEach(screen=>screen.classList.remove("is-active"));
   screens[name].classList.add("is-active");
-  $("#bottomNav").style.display=name==="home"?"flex":"none";
+  $("#bottomNav").style.display=(name==="home"||name==="profile")?"flex":"none";
+  $(".nav-item").forEach(item=>item.classList.toggle("active",item.dataset.nav===name));
   window.scrollTo({top:0,behavior:"smooth"});
 }
 function shapeMarkup(item){
@@ -486,10 +487,67 @@ function finishRun(){
   if(state.mode==="daily"){
     const previousBest=Number(localStorage.getItem("iqgames-best")||0),newBest=Math.max(score,previousBest);
     localStorage.setItem("iqgames-best",String(newBest));$("#homeBestScore").textContent=newBest||842;
-    localStorage.setItem("iqgames-last-day",localDateKey());
   }
+  saveRunProgress(score,accuracy);
   showScreen("result");requestAnimationFrame(()=>setTimeout(()=>{$("#patternBar").style.width=pattern+"%";$("#logicBar").style.width=logic+"%";$("#focusBar").style.width=focus+"%";$("#speedBar").style.width=speed+"%"},250));
 }
+
+function loadProgress(){
+  return {
+    best:Number(localStorage.getItem("iqgames-best")||842),
+    xp:Number(localStorage.getItem("iqgames-xp")||0),
+    runs:Number(localStorage.getItem("iqgames-runs")||0),
+    correct:Number(localStorage.getItem("iqgames-correct")||0),
+    questions:Number(localStorage.getItem("iqgames-questions")||0),
+    streak:Number(localStorage.getItem("iqgames-streak")||0),
+    lastDay:localStorage.getItem("iqgames-last-day")||"",
+    sharp:localStorage.getItem("iqgames-badge-sharp")==="1"
+  };
+}
+function daysBetweenKeys(a,b){
+  if(!a||!b)return null;
+  const [ay,am,ad]=a.split("-").map(Number),[by,bm,bd]=b.split("-").map(Number);
+  return Math.round((Date.UTC(by,bm-1,bd)-Date.UTC(ay,am-1,ad))/86400000);
+}
+function saveRunProgress(score,accuracy){
+  const p=loadProgress();
+  p.runs+=1;p.correct+=state.correct;p.questions+=state.run.length;
+  const earnedXp=Math.round(60+state.correct*14+Math.max(0,score-600)/8);
+  p.xp+=earnedXp;
+  if(accuracy>=.8){p.sharp=true;localStorage.setItem("iqgames-badge-sharp","1")}
+  localStorage.setItem("iqgames-xp",String(p.xp));
+  localStorage.setItem("iqgames-runs",String(p.runs));
+  localStorage.setItem("iqgames-correct",String(p.correct));
+  localStorage.setItem("iqgames-questions",String(p.questions));
+
+  if(state.mode==="daily"){
+    const today=localDateKey();
+    if(p.lastDay!==today){
+      const gap=daysBetweenKeys(p.lastDay,today);
+      p.streak=gap===1?p.streak+1:1;
+      localStorage.setItem("iqgames-streak",String(p.streak));
+      localStorage.setItem("iqgames-last-day",today);
+    }
+  }
+  refreshProgressUI();
+}
+function refreshProgressUI(){
+  const p=loadProgress(),level=Math.floor(p.xp/500)+1,within=p.xp%500;
+  $("#headerStreak").textContent=p.streak;
+  $("#profileBest").textContent=p.best;
+  $("#profileStreak").textContent=p.streak;
+  $("#profileRuns").textContent=p.runs;
+  $("#profileAccuracy").textContent=p.questions?Math.round((p.correct/p.questions)*100)+"%":"—";
+  $("#profileLevel").textContent=level;
+  $("#profileXpText").textContent=p.xp+" XP";
+  $("#profileNextText").textContent=(500-within)+" to next level";
+  $("#profileXpBar").style.width=(within/5)+"%";
+  $("#badgeFirst").classList.toggle("unlocked",p.runs>=1);
+  $("#badgeSharp").classList.toggle("unlocked",p.sharp);
+  $("#badgeStreak").classList.toggle("unlocked",p.streak>=3);
+  $("#dailyStatusText").textContent=p.lastDay===localDateKey()?"Today’s run complete ✓":"Fresh challenge every day";
+}
+
 function goHome(){clearInterval(state.timer);clearTimeout(state.memoryTimeout);showScreen("home");$("#feedbackCard").classList.remove("show")}
 function showToast(message){const toast=$("#toast");toast.textContent=message;toast.classList.add("show");setTimeout(()=>toast.classList.remove("show"),1800)}
 async function shareScore(){
@@ -501,7 +559,12 @@ $("#startRunButton").addEventListener("click",startRun);$("#nextButton").addEven
 $("#exitGameButton").addEventListener("click",goHome);$("#homeButton").addEventListener("click",goHome);$("#brandButton").addEventListener("click",goHome);$("#shareButton").addEventListener("click",shareScore);
 $("#practiceButton").addEventListener("click",()=>startPractice("Mixed"));
 $$(".skill-card").forEach(card=>card.addEventListener("click",()=>startPractice(card.dataset.skill)));
-$$(".nav-item").forEach(item=>item.addEventListener("click",()=>{if(item.dataset.nav==="practice")startPractice("Mixed");else if(item.dataset.nav==="profile")showToast("Profile is the next screen")}));
+$(".nav-item").forEach(item=>item.addEventListener("click",()=>{
+  if(item.dataset.nav==="home")goHome();
+  else if(item.dataset.nav==="practice")startPractice("Mixed");
+  else if(item.dataset.nav==="profile"){refreshProgressUI();showScreen("profile")}
+}));
+$("#profileHomeButton").addEventListener("click",goHome);
 const dayNames=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],dayWords=["Reset","Momentum","Spark","Clarity","Rhythm","Focus","Challenge"];
 $("#dailyTitle").textContent=`${dayNames[new Date().getDay()]} ${dayWords[new Date().getDay()]}`;
-const storedBest=Number(localStorage.getItem("iqgames-best")||842);$("#homeBestScore").textContent=storedBest;
+const storedBest=Number(localStorage.getItem("iqgames-best")||842);$("#homeBestScore").textContent=storedBest;refreshProgressUI();
