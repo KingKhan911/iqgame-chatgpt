@@ -755,4 +755,39 @@ $("#profileHomeButton").addEventListener("click",goHome);
 $("#insightPracticeButton").addEventListener("click",()=>startPractice($("#insightPracticeButton").dataset.skill||"Mixed"));
 const dayNames=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],dayWords=["Reset","Momentum","Spark","Clarity","Rhythm","Focus","Challenge"];
 $("#dailyTitle").textContent=`${dayNames[new Date().getDay()]} ${dayWords[new Date().getDay()]}`;
-const storedBest=Number(localStorage.getItem("iqgames-best")||842);$("#homeBestScore").textContent=storedBest;refreshProgressUI();
+const storedBest=Number(localStorage.getItem("iqgames-best")||0);$("#homeBestScore").textContent=storedBest||"—";refreshProgressUI();
+
+function applyCapturePreview(){
+  const preview=new URLSearchParams(window.location.search).get("preview");
+  if(!preview)return;
+  document.body.classList.add("capture-mode");
+
+  if(preview==="home"){
+    showScreen("home");
+    return;
+  }
+
+  const rand=mulberry32(seedFromString("iq-games-capture"));
+  const configurations={
+    onemove:{puzzle:tunePuzzle(makeOneMove(rand),"WARM-UP",24),position:1},
+    path:{puzzle:tunePuzzle(makePath(rand),"WARM-UP",22),position:2},
+    balance:{puzzle:tunePuzzle(makeBalance(rand),"STEADY",22),position:4},
+    fold:{puzzle:tunePuzzle(makeFold(rand),"STRETCH",26),position:6}
+  };
+  const config=configurations[preview];
+  if(!config)return;
+
+  resetRun();
+  state.mode="practice";
+  state.skill="Capture";
+  state.run=[config.puzzle];
+  showScreen("game");
+  renderPuzzle();
+  clearInterval(state.timer);
+  clearTimeout(state.memoryTimeout);
+  state.timer=null;
+  $("#questionCounter").textContent=`${config.position} of 7`;
+  $("#progressBar").style.width=`${(config.position/7)*100}%`;
+  $("#timerText").textContent=String(config.puzzle.timeLimit||20);
+}
+applyCapturePreview();
