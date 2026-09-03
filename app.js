@@ -2,6 +2,15 @@ const S=(shape,tone="violet",rotation=0)=>({kind:"shape",shape,tone,rotation});
 const T=(text,sub="")=>({kind:"text",text:String(text),sub});
 const D=(spots)=>({kind:"dotpattern",spots});
 const H=(points)=>({kind:"shadow",points});
+const storage={
+  getItem(key){
+    try{return window.localStorage.getItem(key)}catch(_){return null}
+  },
+  setItem(key,value){
+    try{window.localStorage.setItem(key,String(value))}catch(_){}
+  }
+};
+
 const TOKENS=[
   S("circle","peach"),S("square","violet"),S("diamond","yellow"),
   S("ring","mint"),S("triangle","blue"),S("cross","rose")
@@ -267,10 +276,10 @@ function renderBoard(p){
     </div>`;return;
   }
   if(p.type==="shadow"){
-    const target=H(p.target);
-    board.innerHTML=`<div class="shadow-board"><div class="light-source">☀</div><div class="light-ray ray-a"></div><div class="light-ray ray-b"></div><div class="object-cluster">
-      <span class="float-shape fs-a"></span><span class="float-shape fs-b"></span><span class="float-shape fs-c"></span><span class="float-shape fs-d"></span>
-    </div><div class="shadow-floor"><span class="soft-cast"></span></div></div>`;return;
+    const fills=["#ffb78c","#8b78ec","#aee5d4","#ffd977"];
+    board.innerHTML=`<div class="shadow-board"><div class="light-source">☀</div><div class="light-ray ray-a"></div><div class="light-ray ray-b"></div>
+      <svg class="object-cluster-svg" viewBox="0 0 100 100" aria-label="Colorful object arrangement">${p.target.map(([x,y,r],i)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${fills[i%fills.length]}"></circle>`).join("")}</svg>
+      <div class="shadow-floor"><span class="soft-cast"></span></div></div>`;return;
   }
   if(p.type==="path"){
     board.innerHTML=pathSvg(p.winner);return;
@@ -286,7 +295,7 @@ function setInteractiveMode(active,label=""){
 function setupOneMove(p){
   setInteractiveMode(true,"TAP A SOURCE, THEN A DESTINATION");
   let source=null;
-  const towers=$$$(".gem-tower");
+  const towers=$$(".gem-tower");
   towers.forEach(tower=>{
     tower.addEventListener("click",()=>{
       if(state.answered)return;
@@ -334,7 +343,7 @@ function setupOneMove(p){
 function setupBalance(p){
   setInteractiveMode(true,"DRAG OR TAP A SHAPE ONTO THE ? PAN");
   const dropzone=$(".balance-dropzone");
-  const pieces=$(".balance-piece");
+  const pieces=$$(".balance-piece");
 
   const submit=index=>{
     if(state.answered)return;
@@ -373,7 +382,7 @@ function setupBalance(p){
 function setupFold(p){
   setInteractiveMode(true,"TAP THE PAPER TO FOLD IT");
   const stage=$("#paperStage");
-  const steps=$(".fold-steps span");
+  const steps=$$(".fold-steps span");
   let phase=0;
 
   const setPhase=next=>{
@@ -551,8 +560,8 @@ function finishRun(){
   $("#insightPracticeButton").textContent=growth.name===strongest.name?"Try mixed sprint →":`Train ${growth.practice} →`;
 
   if(state.mode==="daily"){
-    const previousBest=Number(localStorage.getItem("iqgames-best")||0),newBest=Math.max(score,previousBest);
-    localStorage.setItem("iqgames-best",String(newBest));$("#homeBestScore").textContent=newBest||"—";
+    const previousBest=Number(storage.getItem("iqgames-best")||0),newBest=Math.max(score,previousBest);
+    storage.setItem("iqgames-best",String(newBest));$("#homeBestScore").textContent=newBest||"—";
   }
   const reward=saveRunProgress(score,accuracy);
   renderRunReward(reward);
@@ -561,16 +570,16 @@ function finishRun(){
 
 function loadProgress(){
   return {
-    best:Number(localStorage.getItem("iqgames-best")||0),
-    xp:Number(localStorage.getItem("iqgames-xp")||0),
-    runs:Number(localStorage.getItem("iqgames-runs")||0),
-    correct:Number(localStorage.getItem("iqgames-correct")||0),
-    questions:Number(localStorage.getItem("iqgames-questions")||0),
-    streak:Number(localStorage.getItem("iqgames-streak")||0),
-    lastDay:localStorage.getItem("iqgames-last-day")||"",
-    rewardDay:localStorage.getItem("iqgames-reward-day")||"",
-    shards:Number(localStorage.getItem("iqgames-shards")||0),
-    sharp:localStorage.getItem("iqgames-badge-sharp")==="1"
+    best:Number(storage.getItem("iqgames-best")||0),
+    xp:Number(storage.getItem("iqgames-xp")||0),
+    runs:Number(storage.getItem("iqgames-runs")||0),
+    correct:Number(storage.getItem("iqgames-correct")||0),
+    questions:Number(storage.getItem("iqgames-questions")||0),
+    streak:Number(storage.getItem("iqgames-streak")||0),
+    lastDay:storage.getItem("iqgames-last-day")||"",
+    rewardDay:storage.getItem("iqgames-reward-day")||"",
+    shards:Number(storage.getItem("iqgames-shards")||0),
+    sharp:storage.getItem("iqgames-badge-sharp")==="1"
   };
 }
 function daysBetweenKeys(a,b){
@@ -584,34 +593,34 @@ function saveRunProgress(score,accuracy){
   let earnedXp=Math.round(55+state.correct*13+Math.max(0,score-600)/9);
   let dailyBonus=false;
   p.xp+=earnedXp;
-  if(accuracy>=.8){p.sharp=true;localStorage.setItem("iqgames-badge-sharp","1")}
+  if(accuracy>=.8){p.sharp=true;storage.setItem("iqgames-badge-sharp","1")}
 
   if(state.mode==="daily"){
     const today=localDateKey();
     if(p.lastDay!==today){
       const gap=daysBetweenKeys(p.lastDay,today);
       p.streak=gap===1?p.streak+1:1;
-      localStorage.setItem("iqgames-streak",String(p.streak));
-      localStorage.setItem("iqgames-last-day",today);
+      storage.setItem("iqgames-streak",String(p.streak));
+      storage.setItem("iqgames-last-day",today);
     }
     if(p.rewardDay!==today){
       dailyBonus=true;
       earnedXp+=75;p.xp+=75;p.shards+=1;
-      localStorage.setItem("iqgames-reward-day",today);
-      localStorage.setItem("iqgames-shards",String(p.shards));
+      storage.setItem("iqgames-reward-day",today);
+      storage.setItem("iqgames-shards",String(p.shards));
     }
   }
 
-  localStorage.setItem("iqgames-xp",String(p.xp));
-  localStorage.setItem("iqgames-runs",String(p.runs));
-  localStorage.setItem("iqgames-correct",String(p.correct));
-  localStorage.setItem("iqgames-questions",String(p.questions));
+  storage.setItem("iqgames-xp",String(p.xp));
+  storage.setItem("iqgames-runs",String(p.runs));
+  storage.setItem("iqgames-correct",String(p.correct));
+  storage.setItem("iqgames-questions",String(p.questions));
   refreshProgressUI();
   return {earnedXp,dailyBonus,streak:p.streak,shards:p.shards};
 }
 function refreshProgressUI(){
   const p=loadProgress(),level=Math.floor(p.xp/500)+1,within=p.xp%500;
-  if(p.lastDay && p.streak===0){p.streak=1;localStorage.setItem("iqgames-streak","1")}
+  if(p.lastDay && p.streak===0){p.streak=1;storage.setItem("iqgames-streak","1")}
   $("#headerStreak").textContent=p.streak;
   $("#homeStreak").textContent=p.streak+(p.streak===1?" day":" days");
   $("#streakGoal").textContent=Math.min(p.streak,7)+"/7";
@@ -755,7 +764,7 @@ $("#profileHomeButton").addEventListener("click",goHome);
 $("#insightPracticeButton").addEventListener("click",()=>startPractice($("#insightPracticeButton").dataset.skill||"Mixed"));
 const dayNames=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],dayWords=["Reset","Momentum","Spark","Clarity","Rhythm","Focus","Challenge"];
 $("#dailyTitle").textContent=`${dayNames[new Date().getDay()]} ${dayWords[new Date().getDay()]}`;
-const storedBest=Number(localStorage.getItem("iqgames-best")||0);$("#homeBestScore").textContent=storedBest||"—";refreshProgressUI();
+const storedBest=Number(storage.getItem("iqgames-best")||0);$("#homeBestScore").textContent=storedBest||"—";refreshProgressUI();
 
 function applyCapturePreview(){
   const preview=new URLSearchParams(window.location.search).get("preview");
